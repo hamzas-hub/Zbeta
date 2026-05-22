@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>GreenDrive Rent A Car</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body{
+      background:#fff;
+      color:#111;
+    }
+
+    /* NAVBAR */
+    nav{
+      width:100%;
+      padding:20px 8%;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      background:#000;
+      color:#fff;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+
+    .logo{
+      font-size:28px;
+      font-weight:bold;
+      color:#00c853;
+    }
+
+    nav ul{
+      display:flex;
+      list-style:none;
+      gap:25px;
+    }
+
+    nav ul li{
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    nav ul li:hover{
+      color:#00c853;
+    }
+
+    /* HERO SECTION */
+    .hero{
+      height:90vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:0 8%;
+      background:
+      linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+      url('https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=1400&auto=format&fit=crop');
+      background-size:cover;
+      background-position:center;
+      color:#fff;
+    }
+
+    .hero-content h1{
+      font-size:60px;
+      margin-bottom:20px;
+    }
+
+    .hero-content span{
+      color:#00e676;
+    }
+
+    .hero-content p{
+      font-size:18px;
+      max-width:700px;
+      margin:auto;
+      line-height:1.7;
+      margin-bottom:30px;
+    }
+
+    .hero-btn{
+      padding:14px 35px;
+      border:none;
+      background:#00c853;
+      color:#fff;
+      font-size:18px;
+      border-radius:8px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .hero-btn:hover{
+      background:#009624;
+    }
+
+    /* SECTION TITLE */
+    .section-title{
+      text-align:center;
+      margin:70px 0 40px;
+    }
+
+    .section-title h2{
+      font-size:40px;
+      color:#111;
+    }
+
+    .section-title p{
+      color:#555;
+      margin-top:10px;
+    }
+
+    /* CAR GRID */
+    .cars{
+      width:100%;
+      padding:0 8% 80px;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+      gap:30px;
+    }
+
+    .car-card{
+      background:#fff;
+      border-radius:18px;
+      overflow:hidden;
+      box-shadow:0 5px 20px rgba(0,0,0,0.1);
+      transition:0.3s;
+      border:1px solid #eee;
+    }
+
+    .car-card:hover{
+      transform:translateY(-8px);
+    }
+
+    .car-card img{
+      width:100%;
+      height:220px;
+      object-fit:cover;
+    }
+
+    .car-info{
+      padding:20px;
+    }
+
+    .car-info h3{
+      margin-bottom:10px;
+      font-size:24px;
+    }
+
+    .car-info p{
+      color:#555;
+      margin-bottom:18px;
+      line-height:1.5;
+    }
+
+    .price{
+      font-size:28px;
+      font-weight:bold;
+      color:#00c853;
+      margin-bottom:20px;
+    }
+
+    /* DAYS SELECTOR */
+    .days-control{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:#f5f5f5;
+      padding:12px 15px;
+      border-radius:10px;
+      margin-bottom:20px;
+    }
+
+    .plus-btn{
+      width:40px;
+      height:40px;
+      border:none;
+      border-radius:50%;
+      background:#00c853;
+      color:#fff;
+      font-size:24px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .plus-btn:hover{
+      background:#009624;
+    }
+
+    .rent-btn{
+      width:100%;
+      padding:14px;
+      border:none;
+      background:#000;
+      color:#fff;
+      font-size:16px;
+      border-radius:10px;
+      cursor:pointer;
+      transition:0.3s;
+    }
+
+    .rent-btn:hover{
+      background:#00c853;
+    }
+
+    /* FEATURES */
+    .features{
+      background:#000;
+      color:#fff;
+      padding:80px 8%;
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:30px;
+    }
+
+    .feature-box{
+      background:#111;
+      padding:30px;
+      border-radius:15px;
+      border:1px solid #1f1f1f;
+      transition:0.3s;
+    }
+
+    .feature-box:hover{
+      border-color:#00c853;
+    }
+
+    .feature-box h3{
+      margin-bottom:15px;
+      color:#00e676;
+    }
+
+    .feature-box p{
+      line-height:1.6;
+      color:#ccc;
+    }
+
+    /* FOOTER */
+    footer{
+      text-align:center;
+      padding:25px;
+      background:#111;
+      color:#fff;
+    }
+
+    /* RESPONSIVE */
+    @media(max-width:768px){
+
+      .hero-content h1{
+        font-size:40px;
+      }
+
+      nav ul{
+        display:none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAVBAR -->
+  <nav>
+    <div class="logo">GreenDrive</div>
+
+    <ul>
+      <li>Home</li>
+      <li>Cars</li>
+      <li>Services</li>
+      <li>Contact</li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Premium <span>Rent A Car</span> Service</h1>
+
+      <p>
+        Rent luxury and economy vehicles at affordable daily rates.
+        Choose from Mehran, Vitz, Fortuner, Sonata, Toyota, Kia,
+        and many more premium vehicles.
+      </p>
+
+      <button class="hero-btn">Book Your Ride</button>
+    </div>
+  </section>
+
+  <!-- SECTION TITLE -->
+  <div class="section-title">
+    <h2>Available Cars</h2>
+    <p>Select your favorite car and choose rental days</p>
+  </div>
+
+  <!-- CAR SECTION -->
+  <section class="cars">
+
+    <!-- MEHRAN -->
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=1200&auto=format&fit=crop">
+
+      <div class="car-info">
+        <h3>Suzuki Mehran</h3>
+        <p>Budget-friendly city car with excellent fuel average.</p>
+
+        <div class="price" data-price="4000">PKR 4000</div>
+
+        <div class="days-control">
+          <span>Days: <span class="days">1</span></span>
+
+          <button class="plus-btn">+</button>
+        </div>
+
+        <button class="rent-btn">Rent Now</button>
+      </div>
+    </div>
+
+    <!-- VITZ -->
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=1200&auto=format&fit=crop">
+
+      <div class="car-info">
+        <h3>Toyota Vitz</h3>
+        <p>Comfortable hatchback with stylish modern design.</p>
+
+        <div class="price" data-price="6500">PKR 6500</div>
+
+        <div class="days-control">
+          <span>Days: <span class="days">1</span></span>
+
+          <button class="plus-btn">+</button>
+        </div>
+
+        <button class="rent-btn">Rent Now</button>
+      </div>
+    </div>
+
+    <!-- FORTUNER -->
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=1200&auto=format&fit=crop">
+
+      <div class="car-info">
+        <h3>Toyota Fortuner</h3>
+        <p>Luxury SUV perfect for family tours and business trips.</p>
+
+        <div class="price" data-price="18000">PKR 18000</div>
+
+        <div class="days-control">
+          <span>Days: <span class="days">1</span></span>
+
+          <button class="plus-btn">+</button>
+        </div>
+
+        <button class="rent-btn">Rent Now</button>
+      </div>
+    </div>
+
+    <!-- SONATA -->
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=1200&auto=format&fit=crop">
+
+      <div class="car-info">
+        <h3>Hyundai Sonata</h3>
+        <p>Premium sedan with luxury interior and smooth drive.</p>
+
+        <div class="price" data-price="15000">PKR 15000</div>
+
+        <div class="days-control">
+          <span>Days: <span class="days">1</span></span>
+
+          <button class="plus-btn">+</button>
+        </div>
+
+        <button class="rent-btn">Rent Now</button>
+      </div>
+    </div>
+
+    <!-- TOYOTA COROLLA -->
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1553440569-bcc63803a83d?q=80&w=1200&auto=format&fit=crop">
+
+      <div class="car-info">
+        <h3>Toyota Corolla</h3>
+        <p>Reliable sedan ideal for daily travel and long routes.</p>
+
+        <div class="price" data-price="9000">PKR 9000</div>
+
+        <div class="days-control">
+          <span>Days: <span class="days">1</span></span>
+
+          <button class="plus-btn">+</button>
+        </div>
+
+        <button class="rent-btn">Rent Now</button>
+      </div>
+    </div>
+
+    <!-- KIA SPORTAGE -->
+    <div class="car-card">
+      <img src="https://images.unsplash.com/photo-1503736334956-4c8f8e92946d?q=80&w=1200&auto=format&fit=crop">
+
+      <div class="car-info">
+        <h3>Kia Sportage</h3>
+        <p>Stylish crossover SUV with advanced comfort features.</p>
+
+        <div class="price" data-price="13000">PKR 13000</div>
+
+        <div class="days-control">
+          <span>Days: <span class="days">1</span></span>
+
+          <button class="plus-btn">+</button>
+        </div>
+
+        <button class="rent-btn">Rent Now</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features">
+
+    <div class="feature-box">
+      <h3>Affordable Prices</h3>
+      <p>
+        Best daily rental packages with no hidden charges.
+      </p>
+    </div>
+
+    <div class="feature-box">
+      <h3>Luxury Fleet</h3>
+      <p>
+        Wide range of economy, luxury, and SUV vehicles available.
+      </p>
+    </div>
+
+    <div class="feature-box">
+      <h3>24/7 Support</h3>
+      <p>
+        Customer support available anytime for bookings and help.
+      </p>
+    </div>
+
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    © 2026 GreenDrive Rent A Car — All Rights Reserved
+  </footer>
+
+  <!-- JAVASCRIPT -->
+  <script>
+
+    const cards = document.querySelectorAll('.car-card');
+
+    cards.forEach(card => {
+
+      const plusBtn = card.querySelector('.plus-btn');
+      const daysText = card.querySelector('.days');
+      const priceText = card.querySelector('.price');
+
+      const basePrice = parseInt(priceText.dataset.price);
+
+      let days = 1;
+
+      plusBtn.addEventListener('click', () => {
+
+        days++;
+
+        daysText.innerText = days;
+
+        const total = basePrice * days;
+
+        priceText.innerText = `PKR ${total}`;
+
+      });
+
+    });
+
+  </script>
+
+</body>
+  </html>
