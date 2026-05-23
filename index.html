@@ -103,7 +103,7 @@
         <div style="text-align:center;">
             <div class="title">COBRA</div>
             <div class="subtitle">ESCAPE</div>
-            <button id="start-btn" class="glow-btn">START GAME</button>
+            <button id="start-btn" class="glow-btn">CONTINUE GAME</button>
             <button id="levels-menu-btn" class="glow-btn">SELECT LEVEL</button>
             <p style="margin-top:30px;color:#aaa;">High Score: <span id="home-highscore" style="color:#ff8800;">0</span></p>
         </div>
@@ -157,9 +157,9 @@
         let currentLevel = 1, elapsed = 0, startTime = 0, tickRate = 150;
         let lastTick = 0;
         let highScore = 0;
-        let unlockedLevels = [1];
-        let audioCtx;
+        let maxUnlockedLevel = 1;   // ← New: Tracks highest unlocked level
 
+        let audioCtx;
         function initAudio() {
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
@@ -167,23 +167,24 @@
             if (!audioCtx) initAudio();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.value = freq;
+            osc.type = type; osc.frequency.value = freq;
             gain.gain.value = vol;
             osc.connect(gain).connect(audioCtx.destination);
             osc.start();
             osc.stop(audioCtx.currentTime + duration);
         }
 
+        // Load Progress from localStorage
         function loadProgress() {
             highScore = parseInt(localStorage.getItem('cobraHighScore')) || 0;
-            unlockedLevels = JSON.parse(localStorage.getItem('cobraUnlocked')) || [1];
+            maxUnlockedLevel = parseInt(localStorage.getItem('cobraMaxLevel')) || 1;
             document.getElementById('home-highscore').textContent = highScore;
         }
 
+        // Save Progress
         function saveProgress() {
             localStorage.setItem('cobraHighScore', highScore);
-            localStorage.setItem('cobraUnlocked', JSON.stringify(unlockedLevels));
+            localStorage.setItem('cobraMaxLevel', maxUnlockedLevel);
         }
 
         class Snake {
@@ -249,7 +250,6 @@
 
         function gameLoop() {
             if (gameState !== 'playing') return;
-
             const now = Date.now();
             elapsed = Math.floor((now - startTime) / 1000);
 
@@ -257,32 +257,29 @@
                 update();
                 lastTick = now;
             }
-
             render();
 
             const target = 200 + currentLevel * 100;
             if (score >= target) victory();
+
             requestAnimationFrame(gameLoop);
         }
 
         function update() {
             const head = {x: snake.body[0].x + dx, y: snake.body[0].y + dy};
-
             if (head.x < 0 || head.x >= gridW || head.y < 0 || head.y >= gridH) return gameOver();
             if (snake.body.some(s => s.x === head.x && s.y === head.y)) return gameOver();
             if (walls.some(w => w.x === head.x && w.y === head.y)) return gameOver();
 
             snake.body.unshift(head);
-
             let ate = false;
 
             if (food && head.x === food.x && head.y === food.y) {
                 score += 15;
-                playSound(900, 0.08, 'sine', 0.4);
+                playSound(900, 0.08);
                 ate = true;
                 spawnFood();
             }
-
             if (specialMouse && head.x === specialMouse.x && head.y === specialMouse.y) {
                 score += 70;
                 playSound(1200, 0.15); playSound(1500, 0.2);
@@ -291,7 +288,6 @@
             }
 
             if (!ate) snake.body.pop();
-
             if (!food) spawnFood();
             if (!specialMouse && Math.random() < 0.022) spawnSpecialMouse();
         }
@@ -300,20 +296,19 @@
             ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Grid
             ctx.strokeStyle = 'rgba(0,255,65,0.08)';
             for (let i = 0; i <= gridW; i++) {
                 ctx.beginPath(); ctx.moveTo(i*cell,0); ctx.lineTo(i*cell,canvas.height); ctx.stroke();
             }
 
-            // Walls
-            ctx.fillStyle = '#555';
-            ctx.shadowColor = '#ff8800';
-            ctx.shadowBlur = 12;
-            walls.forEach(w => ctx.fillRect(w.x*cell+3, w.y*cell+3, cell-6, cell-6));
+            walls.forEach(w => {
+                ctx.fillStyle = '#555';
+                ctx.shadowColor = '#ff8800';
+                ctx.shadowBlur = 12;
+                ctx.fillRect(w.x*cell+3, w.y*cell+3, cell-6, cell-6);
+            });
             ctx.shadowBlur = 0;
 
-            // Snake with better graphics
             snake.body.forEach((seg, i) => {
                 ctx.shadowColor = i===0 ? '#00ff88' : '#00ff41';
                 ctx.shadowBlur = i===0 ? 22 : 12;
@@ -322,18 +317,13 @@
             });
             ctx.shadowBlur = 0;
 
-            // Food
             if (food) {
                 ctx.fillStyle = '#ffff00';
-                ctx.shadowColor = '#ffff00';
                 ctx.shadowBlur = 8;
                 ctx.fillRect(food.x*cell + 5, food.y*cell + 5, cell-10, cell-10);
             }
-
-            // Special Mouse
             if (specialMouse) {
                 ctx.fillStyle = '#ff00ff';
-                ctx.shadowColor = '#ff00ff';
                 ctx.shadowBlur = 15;
                 ctx.fillRect(specialMouse.x*cell + 4, specialMouse.y*cell + 4, cell-8, cell-8);
             }
@@ -349,10 +339,7 @@
             gameState = 'over';
             playSound(400, 0.6, 'sawtooth', 0.5);
             const isNewRecord = score > highScore;
-            if (isNewRecord) {
-                highScore = score;
-                playSound(800, 0.2); playSound(1100, 0.3); playSound(1400, 0.4);
-            }
+            if (isNewRecord) highScore = score;
             saveProgress();
             document.getElementById('go-score').textContent = score;
             document.getElementById('new-record-text').style.display = isNewRecord ? 'block' : 'none';
@@ -362,18 +349,15 @@
         function victory() {
             gameState = 'victory';
             playSound(700,0.2); playSound(900,0.2); playSound(1200,0.4);
+
             const isNewRecord = score > highScore;
-            if (isNewRecord) {
-                highScore = score;
-                playSound(1000,0.3); playSound(1300,0.4);
-            }
-            saveProgress();
+            if (isNewRecord) highScore = score;
 
             // Unlock next level
-            if (!unlockedLevels.includes(currentLevel + 1) && currentLevel < 10) {
-                unlockedLevels.push(currentLevel + 1);
-                saveProgress();
+            if (currentLevel >= maxUnlockedLevel) {
+                maxUnlockedLevel = currentLevel + 1;
             }
+            saveProgress();
 
             document.getElementById('vic-score').textContent = score;
             document.getElementById('new-record-text-vic').style.display = isNewRecord ? 'block' : 'none';
@@ -398,7 +382,7 @@
             for (let i = 1; i <= 10; i++) {
                 const card = document.createElement('div');
                 card.className = 'level-card';
-                if (!unlockedLevels.includes(i)) card.classList.add('locked');
+                if (i > maxUnlockedLevel) card.classList.add('locked');
                 card.innerHTML = `<b>Level ${i}</b>`;
                 card.onclick = () => {
                     document.getElementById('levels-screen').classList.remove('active');
@@ -409,11 +393,11 @@
             }
         }
 
-        // Button Events...
+        // Button Events
         document.getElementById('start-btn').onclick = () => {
             document.getElementById('home-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
-            initLevel(1);
+            initLevel(maxUnlockedLevel);   // ← Resume from last unlocked level
         };
 
         document.getElementById('levels-menu-btn').onclick = () => {
