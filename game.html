@@ -1,249 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Z-Snake</title>
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      text-align: center;
-    }
-    #menu {
-      margin-top: 20px;
-    }
-    #gameCanvas {
-      background: #000;
-      display: none;
-      margin: 10px auto;
-      border: 2px solid #fff;
-    }
-    #controls {
-      display: none;
-      margin-top: 10px;
-    }
-    #controls button {
-      width: 60px;
-      height: 60px;
-      font-size: 24px;
-      margin: 5px;
-      background: #333;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-    }
-    .locked {
-      opacity: 1;
-      pointer-events: auto;
-    }
-    #pauseBtn {
-      display: none;
-      margin-top: 10px;
-      padding: 10px 20px;
-      font-size: 18px;
-      background: #444;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Z-Snake Ultimate</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family: Arial, sans-serif;
+  overflow:hidden;
+  background:#000;
+  color:white;
+  text-align:center;
+}
+
+/* HOME PAGE */
+
+#homePage{
+  width:100%;
+  height:100vh;
+  position:relative;
+  background:
+    linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.8)),
+    url('https://images.unsplash.com/photo-1518709268805-4e9042af2176?q=80&w=1400&auto=format&fit=crop');
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-direction:column;
+}
+
+#homePage::before{
+  content:"🐉";
+  position:absolute;
+  left:5%;
+  top:10%;
+  font-size:120px;
+  animation: float 4s infinite ease-in-out;
+}
+
+#homePage::after{
+  content:"🐍";
+  position:absolute;
+  right:5%;
+  bottom:10%;
+  font-size:120px;
+  animation: float 5s infinite ease-in-out;
+}
+
+@keyframes float{
+  0%{transform:translateY(0px);}
+  50%{transform:translateY(-20px);}
+  100%{transform:translateY(0px);}
+}
+
+.gameTitle{
+  font-size:70px;
+  color:#ff0000;
+  text-shadow:0 0 20px red;
+  margin-bottom:20px;
+}
+
+.sub{
+  color:#ccc;
+  margin-bottom:30px;
+  font-size:20px;
+}
+
+.mainBtn{
+  padding:15px 40px;
+  font-size:22px;
+  border:none;
+  border-radius:12px;
+  background:red;
+  color:white;
+  cursor:pointer;
+  margin:10px;
+  transition:0.3s;
+}
+
+.mainBtn:hover{
+  transform:scale(1.08);
+  background:#ff3c3c;
+}
+
+#levelContainer{
+  display:none;
+  margin-top:20px;
+  width:90%;
+  max-width:700px;
+}
+
+.levelGrid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:15px;
+}
+
+.levelBtn{
+  padding:18px;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+  background:#222;
+  color:white;
+  cursor:pointer;
+  transition:0.3s;
+  opacity:1;
+}
+
+.levelBtn:hover{
+  transform:scale(1.04);
+}
+
+.locked{
+  opacity:1;
+  background:#444;
+}
+
+.easy{
+  border:2px solid lime;
+}
+
+.medium{
+  border:2px solid orange;
+}
+
+.hard{
+  border:2px solid red;
+}
+
+/* GAME */
+
+#gameContainer{
+  display:none;
+  width:100%;
+  height:100vh;
+  background:#000;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+}
+
+canvas{
+  background:#111;
+  border:4px solid red;
+  box-shadow:0 0 20px red;
+}
+
+#topBar{
+  width:400px;
+  display:flex;
+  justify-content:space-between;
+  margin-bottom:10px;
+  font-size:20px;
+}
+
+#controls{
+  margin-top:15px;
+}
+
+#controls button{
+  width:70px;
+  height:70px;
+  margin:5px;
+  border:none;
+  border-radius:12px;
+  background:#222;
+  color:white;
+  font-size:28px;
+  cursor:pointer;
+}
+
+#controls button:hover{
+  background:red;
+}
+
+#pauseBtn{
+  padding:12px 30px;
+  margin-top:10px;
+  border:none;
+  border-radius:10px;
+  background:orange;
+  color:white;
+  font-size:18px;
+  cursor:pointer;
+}
+
+.musicBtn{
+  background:#00bfff;
+}
+</style>
 </head>
+
 <body>
-  <div id="menu">
-    <h1>Z-Snake</h1>
-    <button id="startBtn">Start</button>
-    <div id="levelSelect" style="display:none;">
-      <h2>Select Level</h2>
-      <div id="levels"></div>
-    </div>
-    <p id="highScoreDisplay">High Score: 0</p>
+
+<!-- HOME PAGE -->
+
+<div id="homePage">
+
+  <h1 class="gameTitle">Z-SNAKE</h1>
+
+  <p class="sub">
+    Dangerous Dragon Snake Adventure
+  </p>
+
+  <button class="mainBtn" id="startBtn">
+    START GAME
+  </button>
+
+  <button class="mainBtn musicBtn" id="musicToggle">
+    🔊 Music ON
+  </button>
+
+  <div id="levelContainer">
+
+    <h2 style="margin-bottom:20px;">SELECT LEVEL</h2>
+
+    <div class="levelGrid" id="levels"></div>
+
   </div>
 
-  <canvas id="gameCanvas"></canvas>
+</div>
+
+<!-- GAME -->
+
+<div id="gameContainer">
+
+  <div id="topBar">
+    <div id="scoreText">Score: 0</div>
+    <div id="targetText">Target: 0</div>
+  </div>
+
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
 
   <div id="controls">
+
     <button id="up">⬆️</button>
+
     <div>
       <button id="left">⬅️</button>
       <button id="right">➡️</button>
     </div>
+
     <button id="down">⬇️</button>
+
   </div>
 
   <button id="pauseBtn">Pause</button>
 
-  <script>
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    canvas.width = 400;
-    canvas.height = 400;
+</div>
 
-    const startBtn = document.getElementById("startBtn");
-    const controls = document.getElementById("controls");
-    const levelSelect = document.getElementById("levels");
-    const highScoreDisplay = document.getElementById("highScoreDisplay");
-    const pauseBtn = document.getElementById("pauseBtn");
+<!-- AUDIO -->
 
-    let snake, food, score, level, targetScore, direction, gameInterval;
-    let paused = false;
-    let highScore = localStorage.getItem("zsnakeHighScore") || 0;
-    highScoreDisplay.textContent = "High Score: " + highScore;
+<audio id="bgMusic" loop>
+  <source src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_c8f3bdf64d.mp3?filename=dark-mystery-110224.mp3">
+</audio>
 
-    const levels = [
-      200, 500, 1000, 2000, 3000, 4000, 5000, 7000, 9000, 12000
-    ];
+<audio id="eatSound">
+  <source src="https://actions.google.com/sounds/v1/cartoon/pop.ogg">
+</audio>
 
-    // Sound effects
-    const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
-    const levelUpSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
-    const gameOverSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+<audio id="bigEatSound">
+  <source src="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg">
+</audio>
 
-    function initLevelButtons() {
-      levels.forEach((target, i) => {
-        const btn = document.createElement("button");
-        btn.textContent = `Level ${i+1}`;
-        btn.dataset.level = i;
-        if (i > 0) btn.classList.add("locked");
-        levelSelect.appendChild(btn);
-      });
-    }
+<audio id="gameOverSound">
+  <source src="https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg">
+</audio>
 
-    function startGame(selectedLevel) {
-      level = selectedLevel;
-      targetScore = levels[level];
-      snake = [{x: 200, y: 200}];
-      direction = "right";
-      score = 0;
-      spawnFood();
-      document.getElementById("menu").style.display = "none";
-      canvas.style.display = "block";
-      controls.style.display = "block";
-      pauseBtn.style.display = "inline-block";
-      paused = false;
-      pauseBtn.textContent = "Pause";
-      clearInterval(gameInterval);
-      gameInterval = setInterval(update, 100);
-    }
+<script>
 
-    function spawnFood() {
-      const type = Math.random() < 0.7 ? "small" : "large";
-      food = {
-        x: Math.floor(Math.random() * (canvas.width/20)) * 20,
-        y: Math.floor(Math.random() * (canvas.height/20)) * 20,
-        type
-      };
-    }
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-    function update() {
-      if (paused) return;
+const homePage = document.getElementById("homePage");
+const gameContainer = document.getElementById("gameContainer");
 
-      const head = {...snake[0]};
-      if (direction === "up") head.y -= 20;
-      if (direction === "down") head.y += 20;
-      if (direction === "left") head.x -= 20;
-      if (direction === "right") head.x += 20;
+const scoreText = document.getElementById("scoreText");
+const targetText = document.getElementById("targetText");
 
-      // Screen wrapping
-      if (head.x < 0) head.x = canvas.width - 20;
-      if (head.x >= canvas.width) head.x = 0;
-      if (head.y < 0) head.y = canvas.height - 20;
-      if (head.y >= canvas.height) head.y = 0;
+const pauseBtn = document.getElementById("pauseBtn");
 
-      snake.unshift(head);
+const bgMusic = document.getElementById("bgMusic");
+const eatSound = document.getElementById("eatSound");
+const bigEatSound = document.getElementById("bigEatSound");
+const gameOverSound = document.getElementById("gameOverSound");
 
-      // Food collision
-      if (head.x === food.x && head.y === food.y) {
-        eatSound.play();
-        if (food.type === "small") {
-          score += 1;
-        } else {
-          score += Math.random() < 0.5 ? 10 : 50;
-          snake.push({...snake[snake.length-1]});
-        }
-        spawnFood();
-      } else {
-        snake.pop();
-      }
+let snake;
+let food;
+let direction;
+let score;
+let target;
+let game;
+let level;
+let paused = false;
+let bubbleCount = 0;
 
-      // Self collision (game over)
-      for (let i = 1; i < snake.length; i++) {
-        if (snake[i].x === head.x && snake[i].y === head.y) {
-          clearInterval(gameInterval);
-          gameOverSound.play();
-          alert("Game Over! Final Score: " + score);
-          if (score > highScore) {
-            highScore = score;
-            localStorage.setItem("zsnakeHighScore", highScore);
-          }
-          highScoreDisplay.textContent = "High Score: " + highScore;
-          document.getElementById("menu").style.display = "block";
-          canvas.style.display = "none";
-          controls.style.display = "none";
-          pauseBtn.style.display = "none";
-          return;
-        }
-      }
+const levels = [
+  {target:50, speed:130},
+  {target:80, speed:120},
+  {target:120, speed:110},
 
-      // Check level completion
-      if (score >= targetScore) {
-        clearInterval(gameInterval);
-        levelUpSound.play();
-        alert(`Level ${level+1} complete!`);
-        const nextBtn = document.querySelector(`[data-level="${level+1}"]`);
-        if (nextBtn) nextBtn.classList.remove("locked");
-        if (score > highScore) {
-          highScore = score;
-          localStorage.setItem("zsnakeHighScore", highScore);
-        }
-        highScoreDisplay.textContent = "High Score: " + highScore;
-        document.getElementById("menu").style.display = "block";
-        canvas.style.display = "none";
-        controls.style.display = "none";
-        pauseBtn.style.display = "none";
-      }
+  {target:180, speed:95},
+  {target:240, speed:85},
+  {target:320, speed:75},
+  {target:420, speed:70},
 
-      draw();
-    }
+  {target:600, speed:60},
+  {target:800, speed:50},
+  {target:1000, speed:40},
+];
 
-    function draw() {
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle = "red";
-      snake.forEach(part => ctx.fillRect(part.x, part.y, 20, 20));
+const levelsDiv = document.getElementById("levels");
 
-      ctx.fillStyle = food.type === "small" ? "blue" : "green";
-      ctx.beginPath();
-      ctx.arc(food.x+10, food.y+10, food.type==="small"?8:12, 0, Math.PI*2);
-      ctx.fill();
+for(let i=0;i<10;i++){
 
-      ctx.fillStyle = "white";
-      ctx.fillText(`Score: ${score}`, 10, 20);
-      ctx.fillText(`Target: ${targetScore}`, 10, 40);
-    }
+  const btn = document.createElement("button");
 
-    document.getElementById("up").onclick = () => direction = "up";
-    document.getElementById("down").onclick = () => direction = "down";
-    document.getElementById("left").onclick = () => direction = "left";
-    document.getElementById("right").onclick = () => direction = "right";
+  btn.classList.add("levelBtn");
 
-    startBtn.onclick = () => {
-      document.getElementById("levelSelect").style.display = "block";
+  if(i <= 2){
+    btn.classList.add("easy");
+  }
+  else if(i <= 6){
+    btn.classList.add("medium");
+  }
+  else{
+    btn.classList.add("hard");
+  }
+
+  if(i !== 0){
+    btn.classList.add("locked");
+    btn.innerHTML = `🔐 Level ${i+1}`;
+  }else{
+    btn.innerHTML = `Level 1`;
+  }
+
+  btn.dataset.level = i;
+
+  btn.onclick = () => {
+
+    if(btn.classList.contains("locked")) return;
+
+    startGame(i);
+
+  };
+
+  levelsDiv.appendChild(btn);
+}
+
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("levelContainer").style.display = "block";
+};
+
+let musicOn = true;
+
+document.getElementById("musicToggle").onclick = function(){
+
+  if(musicOn){
+    bgMusic.pause();
+    this.innerHTML = "🔇 Music OFF";
+  }else{
+    bgMusic.play();
+    this.innerHTML = "🔊 Music ON";
+  }
+
+  musicOn = !musicOn;
+};
+
+function startGame(selectedLevel){
+
+  level = selectedLevel;
+
+  target = levels[level].target;
+
+  score = 0;
+
+  snake = [
+    {x:200, y:200}
+  ];
+
+  direction = "right";
+
+  bubbleCount = 0;
+
+  spawnFood();
+
+  homePage.style.display = "none";
+  gameContainer.style.display = "flex";
+
+  clearInterval(game);
+
+  game = setInterval(update, levels[level].speed);
+
+  if(musicOn){
+    bgMusic.play();
+  }
+
+}
+
+function spawnFood(){
+
+  if(bubbleCount >= 5){
+
+    food = {
+      x: Math.floor(Math.random()*20)*20,
+      y: Math.floor(Math.random()*20)*20,
+      type:"fire"
     };
 
-    levelSelect.onclick = (e) => {
-      if (e.target.tagName === "BUTTON" && !e.target.classList.contains("locked")) {
-        startGame(parseInt(e.target.dataset.level));
-      }
+    bubbleCount = 0;
+
+  }else{
+
+    food = {
+      x: Math.floor(Math.random()*20)*20,
+      y: Math.floor(Math.random()*20)*20,
+      type:"bubble"
     };
 
-    pauseBtn.onclick = () => {
-      paused = !paused;
-      pauseBtn.textContent = paused ? "Resume" : "Pause";
-    };
+  }
 
-    initLevelButtons();
-  </script>
+}
+
+function update(){
+
+  if(paused) return;
+
+  let head = {...snake[0]};
+
+  if(direction==="up") head.y -=20;
+  if(direction==="down") head.y +=20;
+  if(direction==="left") head.x -=20;
+  if(direction==="right") head.x +=20;
+
+  // WALL WRAP
+
+  if(head.x <0) head.x=380;
+  if(head.x >380) head.x=0;
+  if(head.y <0) head.y=380;
+  if(head.y >380) head.y=0;
+
+  // COLLISION
+
+  for(let i=1;i<snake.length;i++){
+
+    if(head.x===snake[i].x && head.y===snake[i].y){
+
+      gameOver();
+
+      return;
+    }
+  }
+
+  snake.unshift(head);
+
+  // FOOD
+
+  if(head.x===food.x && head.y===food.y){
+
+    if(food.type==="bubble"){
+
+      score += 10;
+
+      bubbleCount++;
+
+      eatSound.play();
+
+    }else{
+
+      score += 50;
+
+      snake.push({...snake[snake.length-1]});
+      snake.push({...snake[snake.length-1]});
+
+      bigEatSound.play();
+
+    }
+
+    spawnFood();
+
+  }else{
+
+    snake.pop();
+
+  }
+
+  // LEVEL COMPLETE
+
+  if(score >= target){
+
+    clearInterval(game);
+
+    alert(`Level ${level+1} Complete!`);
+
+    const nextBtn = document.querySelector(
+      `[data-level="${level+1}"]`
+    );
+
+    if(nextBtn){
+
+      nextBtn.classList.remove("locked");
+
+      nextBtn.innerHTML = `Level ${level+2}`;
+
+    }
+
+    gameContainer.style.display="none";
+    homePage.style.display="flex";
+
+  }
+
+  draw();
+
+}
+
+function draw(){
+
+  ctx.clearRect(0,0,400,400);
+
+  // SNAKE
+
+  snake.forEach((part,index)=>{
+
+    if(index===0){
+
+      ctx.fillStyle = "#ff0000";
+
+      ctx.shadowColor = "red";
+      ctx.shadowBlur = 20;
+
+    }else{
+
+      ctx.fillStyle = "#cc0000";
+
+    }
+
+    ctx.fillRect(part.x,part.y,20,20);
+
+  });
+
+  ctx.shadowBlur = 0;
+
+  // FOOD
+
+  if(food.type==="bubble"){
+
+    ctx.fillStyle = "#00bfff";
+
+    ctx.beginPath();
+    ctx.arc(food.x+10, food.y+10, 8, 0, Math.PI*2);
+    ctx.fill();
+
+  }else{
+
+    const gradient = ctx.createRadialGradient(
+      food.x+10,
+      food.y+10,
+      2,
+      food.x+10,
+      food.y+10,
+      12
+    );
+
+    gradient.addColorStop(0,"yellow");
+    gradient.addColorStop(1,"red");
+
+    ctx.fillStyle = gradient;
+
+    ctx.beginPath();
+    ctx.arc(food.x+10, food.y+10, 12, 0, Math.PI*2);
+    ctx.fill();
+
+  }
+
+  scoreText.innerHTML = `Score: ${score}`;
+  targetText.innerHTML = `Target: ${target}`;
+
+}
+
+// CONTROLS
+
+document.getElementById("up").onclick = () => {
+  if(direction!=="down") direction="up";
+};
+
+document.getElementById("down").onclick = () => {
+  if(direction!=="up") direction="down";
+};
+
+document.getElementById("left").onclick = () => {
+  if(direction!=="right") direction="left";
+};
+
+document.getElementById("right").onclick = () => {
+  if(direction!=="left") direction="right";
+};
+
+// KEYBOARD
+
+document.addEventListener("keydown", e=>{
+
+  if(e.key==="ArrowUp" && direction!=="down"){
+    direction="up";
+  }
+
+  if(e.key==="ArrowDown" && direction!=="up"){
+    direction="down";
+  }
+
+  if(e.key==="ArrowLeft" && direction!=="right"){
+    direction="left";
+  }
+
+  if(e.key==="ArrowRight" && direction!=="left"){
+    direction="right";
+  }
+
+});
+
+// PAUSE
+
+pauseBtn.onclick = ()=>{
+
+  paused = !paused;
+
+  pauseBtn.innerHTML = paused ? "Resume" : "Pause";
+
+};
+
+// GAME OVER
+
+function gameOver(){
+
+  clearInterval(game);
+
+  gameOverSound.play();
+
+  alert("💀 GAME OVER 💀\nFinal Score: " + score);
+
+  gameContainer.style.display="none";
+  homePage.style.display="flex";
+
+}
+
+</script>
+
 </body>
 </html>
