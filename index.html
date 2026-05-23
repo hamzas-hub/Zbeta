@@ -42,6 +42,8 @@
             background:rgba(0,255,65,0.08); border:2px solid rgba(0,255,65,0.3);
             padding:12px; border-radius:12px; text-align:center; cursor:pointer;
         }
+        .level-card.locked { opacity:0.45; pointer-events:none; filter:grayscale(1); }
+        .level-card.completed { border-color:#00ff41; background:rgba(0,255,65,0.2); }
 
         #game-screen { flex-direction:column; }
         .top-bar {
@@ -56,7 +58,6 @@
             border:3px solid rgba(0,255,65,0.4); border-radius:12px;
             box-shadow:0 0 30px rgba(0,255,65,0.3); image-rendering:pixelated;
         }
-
         .bottom-bar {
             padding:12px; background:rgba(0,0,0,0.85); 
             display:flex; justify-content:space-around; align-items:center;
@@ -64,11 +65,9 @@
         }
         .score-card {
             background:rgba(0,255,65,0.1); border:2px solid var(--neon-green);
-            padding:12px 20px; border-radius:12px; text-align:center; min-width:110px;
+            padding:12px 20px; border-radius:12px; text-align:center; min-width:120px;
         }
-        .score-card span {
-            font-size:22px; font-weight:bold; color:#00ff41; display:block;
-        }
+        .score-card span { font-size:22px; font-weight:bold; color:#00ff41; display:block; }
         .dpad {
             display:grid; grid-template-columns:repeat(3,1fr); gap:6px; width:190px;
         }
@@ -76,6 +75,7 @@
             width:58px; height:58px; font-size:26px; background:rgba(0,255,65,0.1);
             border:2px solid var(--neon-green); color:var(--neon-green); border-radius:14px;
         }
+        .target { font-size:12px; color:#ff8800; margin-top:4px; }
 
         .overlay {
             position:fixed; inset:0; background:rgba(0,0,0,0.95); display:none;
@@ -86,14 +86,8 @@
             background:rgba(10,20,10,0.95); border:2px solid var(--neon-green);
             padding:30px 40px; border-radius:16px; text-align:center; min-width:280px;
         }
-        .new-record {
-            color: #ff8800;
-            font-size: 18px;
-            margin: 12px 0;
-            text-shadow: 0 0 10px #ff8800;
-            animation: pulse 1.5s infinite;
-        }
-        @keyframes pulse { 50% { opacity: 0.6; } }
+        .new-record { color:#ff8800; font-size:18px; margin:12px 0; animation:pulse 1.5s infinite; }
+        @keyframes pulse { 50% { opacity:0.6; } }
     </style>
 </head>
 <body>
@@ -111,7 +105,7 @@
             <div class="subtitle">ESCAPE</div>
             <button id="start-btn" class="glow-btn">START GAME</button>
             <button id="levels-menu-btn" class="glow-btn">SELECT LEVEL</button>
-            <p style="margin-top:30px; color:#aaa;">High Score: <span id="home-highscore" style="color:#ff8800;">0</span></p>
+            <p style="margin-top:30px;color:#aaa;">High Score: <span id="home-highscore" style="color:#ff8800;">0</span></p>
         </div>
     </div>
 
@@ -138,6 +132,7 @@
             <div class="score-card">
                 <small style="color:#aaa;">SCORE</small>
                 <span id="score">0</span>
+                <div class="target">Target: <span id="target-score">250</span></div>
             </div>
             <div class="dpad">
                 <div></div><button id="up">▲</button><div></div>
@@ -148,59 +143,47 @@
     </div>
 
     <!-- Overlays -->
-    <div id="pause-overlay" class="overlay">
-        <div class="overlay-box">
-            <h2 style="color:#00ff41;">PAUSED</h2>
-            <button id="resume-btn" class="glow-btn">RESUME</button>
-            <button id="quit-btn" class="glow-btn">MAIN MENU</button>
-        </div>
-    </div>
-
-    <div id="gameover-overlay" class="overlay">
-        <div class="overlay-box">
-            <h2 style="color:#ff0040;">GAME OVER</h2>
-            <p>Final Score: <span id="go-score" style="color:#00ff41;font-size:22px;"></span></p>
-            <p id="new-record-text" class="new-record" style="display:none;">🎉 YOU BROKE THE HIGHEST RECORD!</p>
-            <button id="retry-btn" class="glow-btn">TRY AGAIN</button>
-            <button id="gohome1" class="glow-btn">MENU</button>
-        </div>
-    </div>
-
-    <div id="victory-overlay" class="overlay">
-        <div class="overlay-box">
-            <h2 style="color:#00ff41;">LEVEL COMPLETE!</h2>
-            <p>Score: <span id="vic-score" style="color:#00ff41;font-size:22px;"></span></p>
-            <p id="new-record-text-vic" class="new-record" style="display:none;">🎉 YOU BROKE THE HIGHEST RECORD!</p>
-            <button id="next-btn" class="glow-btn">NEXT LEVEL</button>
-            <button id="gohome2" class="glow-btn">MENU</button>
-        </div>
-    </div>
+    <div id="pause-overlay" class="overlay"><div class="overlay-box"><h2 style="color:#00ff41;">PAUSED</h2><button id="resume-btn" class="glow-btn">RESUME</button><button id="quit-btn" class="glow-btn">MENU</button></div></div>
+    <div id="gameover-overlay" class="overlay"><div class="overlay-box"><h2 style="color:#ff0040;">GAME OVER</h2><p>Score: <span id="go-score"></span></p><p id="new-record-text" class="new-record" style="display:none;">🎉 YOU BROKE THE RECORD!</p><button id="retry-btn" class="glow-btn">TRY AGAIN</button><button id="gohome1" class="glow-btn">MENU</button></div></div>
+    <div id="victory-overlay" class="overlay"><div class="overlay-box"><h2 style="color:#00ff41;">LEVEL COMPLETE!</h2><p>Score: <span id="vic-score"></span></p><p id="new-record-text-vic" class="new-record" style="display:none;">🎉 YOU BROKE THE RECORD!</p><button id="next-btn" class="glow-btn">NEXT LEVEL</button><button id="gohome2" class="glow-btn">MENU</button></div></div>
 
     <script>
         const canvas = document.getElementById('game-canvas');
         const ctx = canvas.getContext('2d');
 
         let gridW = 24, gridH = 20, cell = 24;
-        let snake, food = [], specialMouse = null;
+        let snake, food = null, specialMouse = null, walls = [];
         let dx = 1, dy = 0, score = 0, gameState = 'idle';
         let currentLevel = 1, elapsed = 0, startTime = 0, tickRate = 150;
         let lastTick = 0;
         let highScore = 0;
+        let unlockedLevels = [1];
+        let audioCtx;
 
-        // Load High Score
-        function loadHighScore() {
+        function initAudio() {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        function playSound(freq, duration, type='sine', vol=0.3) {
+            if (!audioCtx) initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.value = freq;
+            gain.gain.value = vol;
+            osc.connect(gain).connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function loadProgress() {
             highScore = parseInt(localStorage.getItem('cobraHighScore')) || 0;
+            unlockedLevels = JSON.parse(localStorage.getItem('cobraUnlocked')) || [1];
             document.getElementById('home-highscore').textContent = highScore;
         }
 
-        function saveHighScore(newScore) {
-            if (newScore > highScore) {
-                highScore = newScore;
-                localStorage.setItem('cobraHighScore', highScore);
-                document.getElementById('home-highscore').textContent = highScore;
-                return true;
-            }
-            return false;
+        function saveProgress() {
+            localStorage.setItem('cobraHighScore', highScore);
+            localStorage.setItem('cobraUnlocked', JSON.stringify(unlockedLevels));
         }
 
         class Snake {
@@ -223,10 +206,19 @@
             score = 0;
             elapsed = 0;
             startTime = Date.now();
-            tickRate = Math.max(45, 185 - (level * 13));
+            tickRate = Math.max(40, 190 - (level * 13));
 
             snake = new Snake();
             dx = 1; dy = 0;
+
+            walls = [];
+            const wallCount = 4 + level * 3;
+            for (let i = 0; i < wallCount; i++) {
+                let x = 3 + Math.floor(Math.random() * (gridW-6));
+                let y = 3 + Math.floor(Math.random() * (gridH-6));
+                if (Math.abs(x-10) < 4 && Math.abs(y-10) < 4) continue;
+                walls.push({x, y});
+            }
 
             spawnFood();
             specialMouse = null;
@@ -236,24 +228,21 @@
         }
 
         function spawnFood() {
-            food = [];
-            for (let i = 0; i < 3; i++) {
-                let x, y;
-                do {
-                    x = Math.floor(Math.random() * gridW);
-                    y = Math.floor(Math.random() * gridH);
-                } while (snake.body.some(s => s.x === x && s.y === y));
-                food.push({x, y});
-            }
+            let x, y;
+            do {
+                x = Math.floor(Math.random() * gridW);
+                y = Math.floor(Math.random() * gridH);
+            } while (snake.body.some(s => s.x === x && s.y === y) || walls.some(w => w.x === x && w.y === y));
+            food = {x, y};
         }
 
         function spawnSpecialMouse() {
-            if (Math.random() < 0.35) {
+            if (Math.random() < 0.4) {
                 let x, y;
                 do {
                     x = Math.floor(Math.random() * gridW);
                     y = Math.floor(Math.random() * gridH);
-                } while (snake.body.some(s => s.x === x && s.y === y));
+                } while (snake.body.some(s => s.x === x && s.y === y) || walls.some(w => w.x === x && w.y === y));
                 specialMouse = {x, y};
             }
         }
@@ -271,11 +260,8 @@
 
             render();
 
-            if (score >= 180 + currentLevel * 90) {
-                victory();
-                return;
-            }
-
+            const target = 200 + currentLevel * 100;
+            if (score >= target) victory();
             requestAnimationFrame(gameLoop);
         }
 
@@ -284,76 +270,113 @@
 
             if (head.x < 0 || head.x >= gridW || head.y < 0 || head.y >= gridH) return gameOver();
             if (snake.body.some(s => s.x === head.x && s.y === head.y)) return gameOver();
+            if (walls.some(w => w.x === head.x && w.y === head.y)) return gameOver();
 
             snake.body.unshift(head);
 
             let ate = false;
 
-            for (let i = food.length-1; i >= 0; i--) {
-                if (head.x === food[i].x && head.y === food[i].y) {
-                    score += 10;
-                    food.splice(i,1);
-                    ate = true;
-                }
+            if (food && head.x === food.x && head.y === food.y) {
+                score += 15;
+                playSound(900, 0.08, 'sine', 0.4);
+                ate = true;
+                spawnFood();
             }
 
             if (specialMouse && head.x === specialMouse.x && head.y === specialMouse.y) {
-                score += 60;
+                score += 70;
+                playSound(1200, 0.15); playSound(1500, 0.2);
                 specialMouse = null;
                 ate = true;
             }
 
             if (!ate) snake.body.pop();
 
-            if (food.length < 3) spawnFood();
-            if (!specialMouse && Math.random() < 0.018) spawnSpecialMouse();
+            if (!food) spawnFood();
+            if (!specialMouse && Math.random() < 0.022) spawnSpecialMouse();
         }
 
         function render() {
             ctx.fillStyle = '#0a0a0a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.strokeStyle = 'rgba(0,255,65,0.07)';
+            // Grid
+            ctx.strokeStyle = 'rgba(0,255,65,0.08)';
             for (let i = 0; i <= gridW; i++) {
                 ctx.beginPath(); ctx.moveTo(i*cell,0); ctx.lineTo(i*cell,canvas.height); ctx.stroke();
             }
 
+            // Walls
+            ctx.fillStyle = '#555';
+            ctx.shadowColor = '#ff8800';
+            ctx.shadowBlur = 12;
+            walls.forEach(w => ctx.fillRect(w.x*cell+3, w.y*cell+3, cell-6, cell-6));
+            ctx.shadowBlur = 0;
+
+            // Snake with better graphics
             snake.body.forEach((seg, i) => {
-                ctx.fillStyle = i === 0 ? '#00ff88' : '#00ff41';
+                ctx.shadowColor = i===0 ? '#00ff88' : '#00ff41';
+                ctx.shadowBlur = i===0 ? 22 : 12;
+                ctx.fillStyle = i===0 ? '#00ff88' : '#00ff41';
                 ctx.fillRect(seg.x*cell + 2, seg.y*cell + 2, cell-4, cell-4);
             });
+            ctx.shadowBlur = 0;
 
-            ctx.fillStyle = '#ffff00';
-            food.forEach(f => ctx.fillRect(f.x*cell + 6, f.y*cell + 6, cell-12, cell-12));
+            // Food
+            if (food) {
+                ctx.fillStyle = '#ffff00';
+                ctx.shadowColor = '#ffff00';
+                ctx.shadowBlur = 8;
+                ctx.fillRect(food.x*cell + 5, food.y*cell + 5, cell-10, cell-10);
+            }
 
+            // Special Mouse
             if (specialMouse) {
                 ctx.fillStyle = '#ff00ff';
+                ctx.shadowColor = '#ff00ff';
+                ctx.shadowBlur = 15;
                 ctx.fillRect(specialMouse.x*cell + 4, specialMouse.y*cell + 4, cell-8, cell-8);
             }
+            ctx.shadowBlur = 0;
 
             document.getElementById('score').textContent = score;
             document.getElementById('level').textContent = currentLevel;
-            document.getElementById('timer').textContent = 
-                `\( {String(Math.floor(elapsed/60)).padStart(2,'0')}: \){String(elapsed%60).padStart(2,'0')}`;
+            document.getElementById('timer').textContent = `\( {String(Math.floor(elapsed/60)).padStart(2,'0')}: \){String(elapsed%60).padStart(2,'0')}`;
+            document.getElementById('target-score').textContent = 200 + currentLevel * 100;
         }
 
         function gameOver() {
             gameState = 'over';
-            const isNewRecord = saveHighScore(score);
-            
+            playSound(400, 0.6, 'sawtooth', 0.5);
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                playSound(800, 0.2); playSound(1100, 0.3); playSound(1400, 0.4);
+            }
+            saveProgress();
             document.getElementById('go-score').textContent = score;
             document.getElementById('new-record-text').style.display = isNewRecord ? 'block' : 'none';
-            
             document.getElementById('gameover-overlay').classList.add('active');
         }
 
         function victory() {
             gameState = 'victory';
-            const isNewRecord = saveHighScore(score);
-            
+            playSound(700,0.2); playSound(900,0.2); playSound(1200,0.4);
+            const isNewRecord = score > highScore;
+            if (isNewRecord) {
+                highScore = score;
+                playSound(1000,0.3); playSound(1300,0.4);
+            }
+            saveProgress();
+
+            // Unlock next level
+            if (!unlockedLevels.includes(currentLevel + 1) && currentLevel < 10) {
+                unlockedLevels.push(currentLevel + 1);
+                saveProgress();
+            }
+
             document.getElementById('vic-score').textContent = score;
             document.getElementById('new-record-text-vic').style.display = isNewRecord ? 'block' : 'none';
-            
             document.getElementById('victory-overlay').classList.add('active');
         }
 
@@ -363,11 +386,10 @@
                     dx = newDx; dy = newDy;
                 }
             };
-
-            document.getElementById('up').onclick = () => changeDir(0, -1);
-            document.getElementById('down').onclick = () => changeDir(0, 1);
-            document.getElementById('left').onclick = () => changeDir(-1, 0);
-            document.getElementById('right').onclick = () => changeDir(1, 0);
+            document.getElementById('up').onclick = () => changeDir(0,-1);
+            document.getElementById('down').onclick = () => changeDir(0,1);
+            document.getElementById('left').onclick = () => changeDir(-1,0);
+            document.getElementById('right').onclick = () => changeDir(1,0);
         }
 
         function buildLevels() {
@@ -376,6 +398,7 @@
             for (let i = 1; i <= 10; i++) {
                 const card = document.createElement('div');
                 card.className = 'level-card';
+                if (!unlockedLevels.includes(i)) card.classList.add('locked');
                 card.innerHTML = `<b>Level ${i}</b>`;
                 card.onclick = () => {
                     document.getElementById('levels-screen').classList.remove('active');
@@ -386,7 +409,7 @@
             }
         }
 
-        // Button Events
+        // Button Events...
         document.getElementById('start-btn').onclick = () => {
             document.getElementById('home-screen').classList.remove('active');
             document.getElementById('game-screen').classList.add('active');
@@ -443,13 +466,13 @@
         });
 
         window.onload = () => {
-            loadHighScore();
+            loadProgress();
             resize();
             setupControls();
             setTimeout(() => {
                 document.getElementById('loading-screen').classList.remove('active');
                 document.getElementById('home-screen').classList.add('active');
-            }, 1200);
+            }, 1300);
         };
     </script>
 </body>
