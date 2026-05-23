@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Z-Snake</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #menu {
+      margin-top: 20px;
+    }
+    #gameCanvas {
+      background: #000;
+      display: none;
+      margin: 10px auto;
+      border: 2px solid #fff;
+    }
+    #controls {
+      display: none;
+      margin-top: 10px;
+    }
+    #controls button {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      margin: 5px;
+      background: #333;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+    }
+    .locked {
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    #pauseBtn {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 18px;
+      background: #444;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div id="menu">
+    <h1>Z-Snake</h1>
+    <button id="startBtn">Start</button>
+    <div id="levelSelect" style="display:none;">
+      <h2>Select Level</h2>
+      <div id="levels"></div>
+    </div>
+    <p id="highScoreDisplay">High Score: 0</p>
+  </div>
+
+  <canvas id="gameCanvas"></canvas>
+
+  <div id="controls">
+    <button id="up">⬆️</button>
+    <div>
+      <button id="left">⬅️</button>
+      <button id="right">➡️</button>
+    </div>
+    <button id="down">⬇️</button>
+  </div>
+
+  <button id="pauseBtn">Pause</button>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 400;
+
+    const startBtn = document.getElementById("startBtn");
+    const controls = document.getElementById("controls");
+    const levelSelect = document.getElementById("levels");
+    const highScoreDisplay = document.getElementById("highScoreDisplay");
+    const pauseBtn = document.getElementById("pauseBtn");
+
+    let snake, food, score, level, targetScore, direction, gameInterval;
+    let paused = false;
+    let highScore = localStorage.getItem("zsnakeHighScore") || 0;
+    highScoreDisplay.textContent = "High Score: " + highScore;
+
+    const levels = [
+      200, 500, 1000, 2000, 3000, 4000, 5000, 7000, 9000, 12000
+    ];
+
+    // Sound effects
+    const eatSound = new Audio("https://actions.google.com/sounds/v1/cartoon/pop.ogg");
+    const levelUpSound = new Audio("https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg");
+    const gameOverSound = new Audio("https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg");
+
+    function initLevelButtons() {
+      levels.forEach((target, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = `Level ${i+1}`;
+        btn.dataset.level = i;
+        if (i > 0) btn.classList.add("locked");
+        levelSelect.appendChild(btn);
+      });
+    }
+
+    function startGame(selectedLevel) {
+      level = selectedLevel;
+      targetScore = levels[level];
+      snake = [{x: 200, y: 200}];
+      direction = "right";
+      score = 0;
+      spawnFood();
+      document.getElementById("menu").style.display = "none";
+      canvas.style.display = "block";
+      controls.style.display = "block";
+      pauseBtn.style.display = "inline-block";
+      paused = false;
+      pauseBtn.textContent = "Pause";
+      clearInterval(gameInterval);
+      gameInterval = setInterval(update, 100);
+    }
+
+    function spawnFood() {
+      const type = Math.random() < 0.7 ? "small" : "large";
+      food = {
+        x: Math.floor(Math.random() * (canvas.width/20)) * 20,
+        y: Math.floor(Math.random() * (canvas.height/20)) * 20,
+        type
+      };
+    }
+
+    function update() {
+      if (paused) return;
+
+      const head = {...snake[0]};
+      if (direction === "up") head.y -= 20;
+      if (direction === "down") head.y += 20;
+      if (direction === "left") head.x -= 20;
+      if (direction === "right") head.x += 20;
+
+      // Screen wrapping
+      if (head.x < 0) head.x = canvas.width - 20;
+      if (head.x >= canvas.width) head.x = 0;
+      if (head.y < 0) head.y = canvas.height - 20;
+      if (head.y >= canvas.height) head.y = 0;
+
+      snake.unshift(head);
+
+      // Food collision
+      if (head.x === food.x && head.y === food.y) {
+        eatSound.play();
+        if (food.type === "small") {
+          score += 1;
+        } else {
+          score += Math.random() < 0.5 ? 10 : 50;
+          snake.push({...snake[snake.length-1]});
+        }
+        spawnFood();
+      } else {
+        snake.pop();
+      }
+
+      // Self collision (game over)
+      for (let i = 1; i < snake.length; i++) {
+        if (snake[i].x === head.x && snake[i].y === head.y) {
+          clearInterval(gameInterval);
+          gameOverSound.play();
+          alert("Game Over! Final Score: " + score);
+          if (score > highScore) {
+            highScore = score;
+            localStorage.setItem("zsnakeHighScore", highScore);
+          }
+          highScoreDisplay.textContent = "High Score: " + highScore;
+          document.getElementById("menu").style.display = "block";
+          canvas.style.display = "none";
+          controls.style.display = "none";
+          pauseBtn.style.display = "none";
+          return;
+        }
+      }
+
+      // Check level completion
+      if (score >= targetScore) {
+        clearInterval(gameInterval);
+        levelUpSound.play();
+        alert(`Level ${level+1} complete!`);
+        const nextBtn = document.querySelector(`[data-level="${level+1}"]`);
+        if (nextBtn) nextBtn.classList.remove("locked");
+        if (score > highScore) {
+          highScore = score;
+          localStorage.setItem("zsnakeHighScore", highScore);
+        }
+        highScoreDisplay.textContent = "High Score: " + highScore;
+        document.getElementById("menu").style.display = "block";
+        canvas.style.display = "none";
+        controls.style.display = "none";
+        pauseBtn.style.display = "none";
+      }
+
+      draw();
+    }
+
+    function draw() {
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle = "red";
+      snake.forEach(part => ctx.fillRect(part.x, part.y, 20, 20));
+
+      ctx.fillStyle = food.type === "small" ? "blue" : "green";
+      ctx.beginPath();
+      ctx.arc(food.x+10, food.y+10, food.type==="small"?8:12, 0, Math.PI*2);
+      ctx.fill();
+
+      ctx.fillStyle = "white";
+      ctx.fillText(`Score: ${score}`, 10, 20);
+      ctx.fillText(`Target: ${targetScore}`, 10, 40);
+    }
+
+    document.getElementById("up").onclick = () => direction = "up";
+    document.getElementById("down").onclick = () => direction = "down";
+    document.getElementById("left").onclick = () => direction = "left";
+    document.getElementById("right").onclick = () => direction = "right";
+
+    startBtn.onclick = () => {
+      document.getElementById("levelSelect").style.display = "block";
+    };
+
+    levelSelect.onclick = (e) => {
+      if (e.target.tagName === "BUTTON" && !e.target.classList.contains("locked")) {
+        startGame(parseInt(e.target.dataset.level));
+      }
+    };
+
+    pauseBtn.onclick = () => {
+      paused = !paused;
+      pauseBtn.textContent = paused ? "Resume" : "Pause";
+    };
+
+    initLevelButtons();
+  </script>
+</body>
+</html>
