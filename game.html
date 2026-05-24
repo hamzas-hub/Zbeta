@@ -7,190 +7,186 @@
 
 <style>
 *{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,Helvetica,sans-serif;
--webkit-tap-highlight-color:transparent;
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,Helvetica,sans-serif;
+    -webkit-tap-highlight-color:transparent;
 }
 
 body{
-overflow:hidden;
-background:#02040a;
-touch-action:none;
+    overflow:hidden;
+    background:#050510;
+    touch-action:none;
 }
 
 canvas{
-display:block;
-background:
-radial-gradient(circle at top,#101a38 0%,#05060d 45%,#010103 100%);
+    display:block;
+    width:100vw;
+    height:100vh;
+    background:
+    radial-gradient(circle at top,#13203f 0%,#070912 45%,#010103 100%);
 }
 
 #ui{
-position:fixed;
-top:0;
-left:0;
-width:100%;
-padding:10px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-z-index:20;
-pointer-events:none;
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    padding:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    z-index:10;
+    pointer-events:none;
 }
 
 .panel{
-display:flex;
-align-items:center;
-gap:10px;
-padding:8px 14px;
-border-radius:16px;
-background:rgba(0,0,0,.35);
-backdrop-filter:blur(8px);
-border:1px solid rgba(255,255,255,.12);
-box-shadow:0 0 25px rgba(0,255,255,.15);
+    display:flex;
+    gap:12px;
+    align-items:center;
+    background:rgba(0,0,0,.35);
+    backdrop-filter:blur(10px);
+    border:1px solid rgba(255,255,255,.1);
+    padding:10px 16px;
+    border-radius:18px;
+    box-shadow:0 0 25px rgba(0,255,255,.15);
 }
 
 .uiText{
-color:white;
-font-weight:bold;
-font-size:15px;
-text-shadow:0 0 12px currentColor;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    text-shadow:0 0 10px currentColor;
 }
 
 #pauseBtn{
-pointer-events:auto;
-padding:8px 14px;
-border:none;
-border-radius:12px;
-cursor:pointer;
-font-size:13px;
-font-weight:bold;
-background:#00e5ff;
-color:#00131a;
-box-shadow:0 0 20px #00e5ff;
-transition:.25s;
+    pointer-events:auto;
+    border:none;
+    background:#00e5ff;
+    color:#00141a;
+    font-size:13px;
+    font-weight:bold;
+    padding:8px 14px;
+    border-radius:12px;
+    cursor:pointer;
+    box-shadow:0 0 20px #00e5ff;
 }
 
 #pauseBtn.used{
-background:#555;
-color:#aaa;
-box-shadow:none;
+    background:#555;
+    color:#aaa;
+    box-shadow:none;
 }
 
 .overlay{
-position:fixed;
-inset:0;
-display:flex;
-align-items:center;
-justify-content:center;
-flex-direction:column;
-background:rgba(0,0,0,.5);
-backdrop-filter:blur(8px);
-z-index:50;
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    background:rgba(0,0,0,.55);
+    backdrop-filter:blur(8px);
+    z-index:50;
 }
 
 .hidden{
-display:none;
+    display:none;
 }
 
 .title{
-font-size:58px;
-font-weight:900;
-letter-spacing:3px;
-color:#00e5ff;
-text-shadow:
-0 0 10px #00e5ff,
-0 0 30px #00e5ff,
-0 0 60px #00e5ff;
-animation:pulse 2s infinite;
-text-align:center;
+    font-size:60px;
+    font-weight:900;
+    color:#00e5ff;
+    letter-spacing:3px;
+    text-shadow:
+    0 0 10px #00e5ff,
+    0 0 30px #00e5ff,
+    0 0 60px #00e5ff;
+    animation:pulse 2s infinite;
+    text-align:center;
 }
 
 .sub{
-margin-top:12px;
-color:white;
-opacity:.85;
-font-size:18px;
+    margin-top:12px;
+    color:white;
+    opacity:.85;
+    font-size:18px;
 }
 
 .btn{
-margin-top:28px;
-padding:14px 28px;
-border:none;
-border-radius:14px;
-cursor:pointer;
-font-size:16px;
-font-weight:bold;
-background:#00e5ff;
-color:#00131a;
-box-shadow:0 0 25px #00e5ff;
-transition:.25s;
-}
-
-.btn:hover{
-transform:scale(1.05);
+    margin-top:24px;
+    padding:14px 28px;
+    border:none;
+    border-radius:14px;
+    cursor:pointer;
+    background:#00e5ff;
+    color:#00141a;
+    font-size:16px;
+    font-weight:bold;
+    box-shadow:0 0 25px #00e5ff;
 }
 
 #levelPopup{
-position:fixed;
-inset:0;
-display:flex;
-align-items:center;
-justify-content:center;
-flex-direction:column;
-pointer-events:none;
-z-index:100;
-background:rgba(0,0,0,.18);
-backdrop-filter:blur(4px);
+    position:fixed;
+    inset:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    z-index:60;
+    pointer-events:none;
+    background:rgba(0,0,0,.2);
+    backdrop-filter:blur(4px);
 }
 
 #popupText{
-font-size:60px;
-font-weight:900;
-color:#00e5ff;
-text-shadow:
-0 0 12px #00e5ff,
-0 0 35px #00e5ff,
-0 0 70px #00e5ff;
-animation:pop .8s ease;
+    font-size:58px;
+    font-weight:900;
+    color:#00e5ff;
+    text-shadow:
+    0 0 12px #00e5ff,
+    0 0 35px #00e5ff,
+    0 0 70px #00e5ff;
+    animation:pop .7s ease;
 }
 
 .warning{
-animation:warn .7s infinite;
+    animation:warn .7s infinite;
 }
 
 @keyframes warn{
-0%,100%{
-color:white;
-}
-50%{
-color:#ff3d6e;
-}
+    0%,100%{
+        color:white;
+    }
+    50%{
+        color:#ff4466;
+    }
 }
 
 @keyframes pulse{
-0%,100%{
-filter:brightness(1);
-}
-50%{
-filter:brightness(1.4);
-}
+    0%,100%{
+        filter:brightness(1);
+    }
+    50%{
+        filter:brightness(1.4);
+    }
 }
 
 @keyframes pop{
-0%{
-transform:scale(.3);
-opacity:0;
-}
-50%{
-transform:scale(1.2);
-opacity:1;
-}
-100%{
-transform:scale(1);
-opacity:1;
-}
+    0%{
+        transform:scale(.3);
+        opacity:0;
+    }
+    50%{
+        transform:scale(1.2);
+        opacity:1;
+    }
+    100%{
+        transform:scale(1);
+        opacity:1;
+    }
 }
 </style>
 </head>
@@ -201,68 +197,37 @@ opacity:1;
 
 <div id="ui">
 
-<div class="panel">
-<div class="uiText" id="levelText">LEVEL 1</div>
-<div class="uiText" id="lifeText">❤️❤️❤️❤️❤️</div>
-<div class="uiText" id="timerText">60</div>
-</div>
+    <div class="panel">
+        <div class="uiText" id="levelText">LEVEL 1</div>
+        <div class="uiText" id="lifeText">❤️❤️❤️❤️❤️</div>
+        <div class="uiText" id="timerText">60</div>
+    </div>
 
-<button id="pauseBtn">PAUSE</button>
+    <button id="pauseBtn">PAUSE</button>
 
 </div>
 
 <div class="overlay" id="home">
-
-<div class="title">GO ON ARROW</div>
-
-<div class="sub">
-Neon Cyberpunk Puzzle Game
-</div>
-
-<button class="btn" id="startBtn">
-START GAME
-</button>
-
-<div class="sub" id="bestText"></div>
-
+    <div class="title">GO ON ARROW</div>
+    <div class="sub">Neon Cyberpunk Puzzle Game</div>
+    <button class="btn" id="startBtn">START GAME</button>
+    <div class="sub" id="bestText"></div>
 </div>
 
 <div class="overlay hidden" id="pauseMenu">
-
-<div class="title" style="font-size:46px;">
-PAUSED
-</div>
-
-<button class="btn" id="resumeBtn">
-RESUME
-</button>
-
+    <div class="title" style="font-size:45px;">PAUSED</div>
+    <button class="btn" id="resumeBtn">RESUME</button>
 </div>
 
 <div class="overlay hidden" id="gameOver">
-
-<div class="title" style="color:#ff4466;">
-GAME OVER
-</div>
-
-<div class="sub" id="finalLevel"></div>
-
-<button class="btn" onclick="location.reload()">
-RESTART
-</button>
-
+    <div class="title" style="color:#ff4466;">GAME OVER</div>
+    <div class="sub" id="finalLevel"></div>
+    <button class="btn" onclick="location.reload()">RESTART</button>
 </div>
 
 <div id="levelPopup" class="hidden">
-
-<div id="popupText">
-LEVEL UP 🎊
-</div>
-
-<div class="sub">
-Congratulations!
-</div>
-
+    <div id="popupText">LEVEL UP 🎊</div>
+    <div class="sub">Congratulations!</div>
 </div>
 
 <script>
@@ -270,36 +235,25 @@ Congratulations!
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
-let w,h,dpr;
+let width,height;
 
 function resize(){
+    width = window.innerWidth;
+    height = window.innerHeight;
 
-dpr = window.devicePixelRatio || 1;
-
-w = innerWidth;
-h = innerHeight;
-
-canvas.width = w * dpr;
-canvas.height = h * dpr;
-
-canvas.style.width = w + "px";
-canvas.style.height = h + "px";
-
-ctx.setTransform(1,0,0,1,0,0);
-ctx.scale(dpr,dpr);
-
+    canvas.width = width;
+    canvas.height = height;
 }
 
 resize();
-
 window.addEventListener("resize",resize);
 
 const themes = [
-["#00e5ff","#0088ff"],
-["#ff00ea","#ff4d7a"],
-["#00ff99","#9cff00"],
-["#ff8a00","#ff3300"],
-["#b266ff","#ff66ff"]
+    ["#00e5ff","#0088ff"],
+    ["#ff00ea","#ff4477"],
+    ["#00ff99","#88ff00"],
+    ["#ff8800","#ff3300"],
+    ["#aa66ff","#ff66ff"]
 ];
 
 let arrows = [];
@@ -317,743 +271,627 @@ let gameStarted = false;
 
 let shake = 0;
 let slowMotion = 1;
-let transitionAlpha = 1;
 
-const ui = {
-level:document.getElementById("levelText"),
-life:document.getElementById("lifeText"),
-timer:document.getElementById("timerText")
-};
+const levelText = document.getElementById("levelText");
+const lifeText = document.getElementById("lifeText");
+const timerText = document.getElementById("timerText");
 
 document.getElementById("bestText").innerHTML =
 "BEST LEVEL : " + (localStorage.bestArrowLevel || 1);
 
 class Arrow{
 
-constructor(x,y,dir,size,color){
+    constructor(x,y,dir,size,color){
+        this.x = x;
+        this.y = y;
+        this.dir = dir;
+        this.size = size;
+        this.color = color;
+        this.speed = 2 + level * 0.05;
+        this.moving = false;
+        this.done = false;
+    }
 
-this.x = x;
-this.y = y;
-this.dir = dir;
-this.size = size;
-this.color = color;
+    update(){
 
-this.speed = 2.2 + (level * .05);
+        if(!this.moving) return;
 
-this.moving = false;
+        const moveSpeed = this.speed * slowMotion;
 
-}
+        if(this.dir==="up") this.y -= moveSpeed;
+        if(this.dir==="down") this.y += moveSpeed;
+        if(this.dir==="left") this.x -= moveSpeed;
+        if(this.dir==="right") this.x += moveSpeed;
 
-update(){
+        particles.push(new Particle(this.x,this.y,this.color));
 
-if(!this.moving) return;
+        for(let obstacle of obstacles){
 
-let speed = this.speed * slowMotion;
+            if(
+                this.x > obstacle.x &&
+                this.x < obstacle.x + obstacle.w &&
+                this.y > obstacle.y &&
+                this.y < obstacle.y + obstacle.h
+            ){
+                fail();
+            }
 
-if(this.dir==="up") this.y -= speed;
-if(this.dir==="down") this.y += speed;
-if(this.dir==="left") this.x -= speed;
-if(this.dir==="right") this.x += speed;
+        }
 
-particles.push(
-new Particle(this.x,this.y,this.color)
-);
+        for(let arrow of arrows){
 
-for(let o of obstacles){
+            if(arrow !== this){
 
-if(
-this.x > o.x &&
-this.x < o.x + o.w &&
-this.y > o.y &&
-this.y < o.y + o.h
-){
-fail();
-}
+                const distance = Math.hypot(
+                    this.x - arrow.x,
+                    this.y - arrow.y
+                );
 
-}
+                if(distance < (this.size + arrow.size) * 0.45){
+                    fail();
+                }
 
-for(let a of arrows){
+            }
 
-if(a !== this){
+        }
 
-if(
-Math.hypot(this.x-a.x,this.y-a.y)
-< (this.size + a.size) * .45
-){
-fail();
-}
+        for(let p of powerups){
 
-}
+            const d = Math.hypot(
+                this.x - p.x,
+                this.y - p.y
+            );
 
-}
+            if(d < 35){
+                p.collect();
+            }
 
-for(let p of powerups){
+        }
 
-if(
-Math.hypot(this.x-p.x,this.y-p.y)
-< 40
-){
-p.collect();
-}
+        if(
+            this.x < -120 ||
+            this.x > width + 120 ||
+            this.y < -120 ||
+            this.y > height + 120
+        ){
+            this.done = true;
+        }
 
-}
+    }
 
-if(
-this.x < -100 ||
-this.x > w + 100 ||
-this.y < -100 ||
-this.y > h + 100
-){
-this.done = true;
-}
+    draw(){
 
-}
+        ctx.save();
 
-draw(){
+        ctx.translate(this.x,this.y);
 
-ctx.save();
+        if(this.dir==="up") ctx.rotate(-Math.PI/2);
+        if(this.dir==="down") ctx.rotate(Math.PI/2);
+        if(this.dir==="left") ctx.rotate(Math.PI);
 
-ctx.translate(this.x,this.y);
+        ctx.shadowBlur = 25;
+        ctx.shadowColor = this.color;
 
-if(this.dir==="up") ctx.rotate(-Math.PI/2);
-if(this.dir==="down") ctx.rotate(Math.PI/2);
-if(this.dir==="left") ctx.rotate(Math.PI);
+        for(let i=4;i>=1;i--){
 
-ctx.globalCompositeOperation = "lighter";
+            ctx.globalAlpha = 0.08;
 
-ctx.shadowBlur = 25;
-ctx.shadowColor = this.color;
+            ctx.fillStyle = this.color;
 
-for(let i=4;i>=1;i--){
+            ctx.fillRect(
+                -this.size*0.7 - i*2,
+                -this.size*0.3,
+                this.size*1.2,
+                this.size*0.6
+            );
 
-ctx.globalAlpha = .08;
+        }
 
-ctx.fillStyle = this.color;
+        ctx.globalAlpha = 1;
 
-ctx.fillRect(
--this.size*.7-(i*2),
--this.size*.3,
-this.size*1.2,
-this.size*.6
-);
+        ctx.fillStyle = this.color;
 
-}
+        ctx.beginPath();
 
-ctx.globalAlpha = 1;
+        ctx.moveTo(-this.size*0.7,-this.size*0.4);
+        ctx.lineTo(this.size*0.25,-this.size*0.4);
+        ctx.lineTo(this.size*0.25,-this.size*0.7);
+        ctx.lineTo(this.size,0);
+        ctx.lineTo(this.size*0.25,this.size*0.7);
+        ctx.lineTo(this.size*0.25,this.size*0.4);
+        ctx.lineTo(-this.size*0.7,this.size*0.4);
 
-ctx.fillStyle = this.color;
+        ctx.closePath();
+        ctx.fill();
 
-ctx.beginPath();
+        ctx.restore();
 
-ctx.moveTo(-this.size*.7,-this.size*.4);
-ctx.lineTo(this.size*.25,-this.size*.4);
-ctx.lineTo(this.size*.25,-this.size*.7);
-ctx.lineTo(this.size,0);
-ctx.lineTo(this.size*.25,this.size*.7);
-ctx.lineTo(this.size*.25,this.size*.4);
-ctx.lineTo(-this.size*.7,this.size*.4);
-
-ctx.closePath();
-
-ctx.fill();
-
-ctx.restore();
-
-}
+    }
 
 }
 
 class Obstacle{
 
-constructor(x,y,wid,hei){
+    constructor(x,y,w,h){
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+    }
 
-this.x = x;
-this.y = y;
-this.w = wid;
-this.h = hei;
+    draw(){
 
-}
+        ctx.fillStyle = "rgba(255,255,255,.08)";
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#ffffff";
 
-draw(){
+        ctx.fillRect(this.x,this.y,this.w,this.h);
 
-ctx.fillStyle = "rgba(255,255,255,.08)";
-
-ctx.shadowBlur = 15;
-ctx.shadowColor = "#fff";
-
-ctx.fillRect(this.x,this.y,this.w,this.h);
-
-}
+    }
 
 }
 
 class Particle{
 
-constructor(x,y,color){
+    constructor(x,y,color){
 
-this.x = x;
-this.y = y;
+        this.x = x;
+        this.y = y;
 
-this.vx = (Math.random()-.5)*6;
-this.vy = (Math.random()-.5)*6;
+        this.vx = (Math.random()-0.5)*6;
+        this.vy = (Math.random()-0.5)*6;
 
-this.life = 1;
+        this.life = 1;
+        this.color = color;
 
-this.color = color;
+    }
 
-}
+    update(){
 
-update(){
+        this.x += this.vx;
+        this.y += this.vy;
 
-this.x += this.vx;
-this.y += this.vy;
+        this.vx *= 0.985;
+        this.vy *= 0.985;
 
-this.vx *= .985;
-this.vy *= .985;
+        this.life -= 0.02;
 
-this.life -= .02;
+    }
 
-}
+    draw(){
 
-draw(){
+        ctx.globalAlpha = this.life;
 
-ctx.globalAlpha = this.life;
+        ctx.fillStyle = this.color;
 
-ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x,this.y,3,0,Math.PI*2);
+        ctx.fill();
 
-ctx.beginPath();
+        ctx.globalAlpha = 1;
 
-ctx.arc(this.x,this.y,3,0,Math.PI*2);
-
-ctx.fill();
-
-ctx.globalAlpha = 1;
-
-}
+    }
 
 }
 
 class Powerup{
 
-constructor(x,y,type){
+    constructor(x,y,type){
 
-this.x = x;
-this.y = y;
-this.type = type;
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.float = 0;
 
-this.t = 0;
+    }
 
-}
+    collect(){
 
-collect(){
+        if(this.type==="time"){
+            timer += 25;
+        }
 
-if(this.type==="time"){
-timer += 25;
-}
+        if(this.type==="life"){
+            lives = Math.min(5,lives+1);
+        }
 
-if(this.type==="life"){
-lives = Math.min(5,lives+1);
-}
+        if(this.type==="slow"){
 
-if(this.type==="slow"){
+            slowMotion = 0.4;
 
-slowMotion = .4;
+            setTimeout(()=>{
+                slowMotion = 1;
+            },5000);
 
-setTimeout(()=>{
-slowMotion = 1;
-},5000);
+        }
 
-}
+        burst(this.x,this.y,"#ffffff");
 
-burst(this.x,this.y,"#fff");
+        powerups = powerups.filter(p=>p!==this);
 
-powerups.splice(
-powerups.indexOf(this),
-1
-);
+    }
 
-}
+    draw(){
 
-draw(){
+        this.float += 0.05;
 
-this.t += .05;
+        ctx.save();
 
-ctx.save();
+        ctx.translate(
+            this.x,
+            this.y + Math.sin(this.float)*5
+        );
 
-ctx.translate(
-this.x,
-this.y + Math.sin(this.t)*5
-);
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowBlur = 20;
+        ctx.shadowColor = "#ffffff";
 
-ctx.shadowBlur = 20;
-ctx.shadowColor = "#fff";
+        ctx.font = "32px Arial";
+        ctx.textAlign = "center";
 
-ctx.fillStyle = "#fff";
+        if(this.type==="time") ctx.fillText("+",0,0);
+        if(this.type==="life") ctx.fillText("♥",0,0);
+        if(this.type==="slow") ctx.fillText("⏳",0,0);
 
-ctx.font = "34px Arial";
-ctx.textAlign = "center";
+        ctx.restore();
 
-if(this.type==="time") ctx.fillText("+",0,0);
-if(this.type==="life") ctx.fillText("♥",0,0);
-if(this.type==="slow") ctx.fillText("⏳",0,0);
-
-ctx.restore();
-
-}
+    }
 
 }
 
 function createLevel(){
 
-arrows = [];
-obstacles = [];
-powerups = [];
+    arrows = [];
+    obstacles = [];
+    powerups = [];
 
-let theme =
-themes[
-Math.floor((level-1)/10)
-% themes.length
-];
+    const theme =
+    themes[Math.floor((level-1)/10) % themes.length];
 
-let arrowCount =
-Math.min(5 + Math.floor(level*.5),20);
+    let arrowCount = Math.min(
+        5 + Math.floor(level*0.5),
+        20
+    );
 
-for(let i=0;i<arrowCount;i++){
+    for(let i=0;i<arrowCount;i++){
 
-let dirs = [
-"up",
-"down",
-"left",
-"right"
-];
+        const directions = [
+            "up",
+            "down",
+            "left",
+            "right"
+        ];
 
-arrows.push(
-new Arrow(
-rand(100,w-100),
-rand(120,h-100),
-dirs[Math.floor(Math.random()*4)],
-rand(22,42),
-theme[
-Math.floor(
-Math.random()*theme.length
-)
-]
-)
-);
+        arrows.push(
+            new Arrow(
+                random(100,width-100),
+                random(140,height-100),
+                directions[Math.floor(Math.random()*4)],
+                random(24,40),
+                theme[Math.floor(Math.random()*theme.length)]
+            )
+        );
 
-}
+    }
 
-let obsCount =
-Math.min(Math.floor(level/2),8);
+    let obstacleCount = Math.min(
+        Math.floor(level/2),
+        8
+    );
 
-for(let i=0;i<obsCount;i++){
+    for(let i=0;i<obstacleCount;i++){
 
-obstacles.push(
-new Obstacle(
-rand(80,w-200),
-rand(120,h-180),
-rand(70,180),
-rand(20,80)
-)
-);
+        obstacles.push(
+            new Obstacle(
+                random(80,width-200),
+                random(120,height-180),
+                random(70,180),
+                random(20,80)
+            )
+        );
 
-}
+    }
 
-if(level > 4){
+    if(level > 4){
 
-let types = [
-"time",
-"life",
-"slow"
-];
+        const types = [
+            "time",
+            "life",
+            "slow"
+        ];
 
-powerups.push(
-new Powerup(
-rand(100,w-100),
-rand(120,h-100),
-types[
-Math.floor(Math.random()*3)
-]
-)
-);
+        powerups.push(
+            new Powerup(
+                random(100,width-100),
+                random(140,height-100),
+                types[Math.floor(Math.random()*3)]
+            )
+        );
 
-}
+    }
 
-timer =
-Math.max(20,60-Math.floor(level*.5));
+    timer = Math.max(
+        20,
+        60 - Math.floor(level*0.5)
+    );
 
-transitionAlpha = 1;
-
-updateUI();
+    updateUI();
 
 }
 
 function updateUI(){
 
-ui.level.innerHTML =
-"LEVEL " + level;
+    levelText.innerHTML = "LEVEL " + level;
 
-ui.life.innerHTML =
-"❤️".repeat(lives);
+    lifeText.innerHTML = "❤️".repeat(lives);
 
-ui.timer.innerHTML =
-Math.ceil(timer);
+    timerText.innerHTML = Math.ceil(timer);
 
-if(timer < 10){
-
-ui.timer.classList.add("warning");
-
-}else{
-
-ui.timer.classList.remove("warning");
-
-}
+    if(timer < 10){
+        timerText.classList.add("warning");
+    }else{
+        timerText.classList.remove("warning");
+    }
 
 }
 
 function burst(x,y,color){
 
-for(let i=0;i<30;i++){
-
-particles.push(
-new Particle(x,y,color)
-);
-
-}
-
-}
-
-function showLevelUp(){
-
-const popup =
-document.getElementById("levelPopup");
-
-popup.classList.remove("hidden");
-
-shake = 10;
-
-burst(w/2,h/2,"#00e5ff");
-
-playLevelSound();
-
-setTimeout(()=>{
-popup.classList.add("hidden");
-},1500);
-
-}
-
-function playLevelSound(){
-
-try{
-
-const audioCtx =
-new(
-window.AudioContext ||
-window.webkitAudioContext
-)();
-
-const osc =
-audioCtx.createOscillator();
-
-const gain =
-audioCtx.createGain();
-
-osc.connect(gain);
-
-gain.connect(audioCtx.destination);
-
-osc.type = "triangle";
-
-osc.frequency.setValueAtTime(
-300,
-audioCtx.currentTime
-);
-
-osc.frequency.linearRampToValueAtTime(
-700,
-audioCtx.currentTime + .3
-);
-
-gain.gain.setValueAtTime(
-.08,
-audioCtx.currentTime
-);
-
-gain.gain.exponentialRampToValueAtTime(
-0.001,
-audioCtx.currentTime + .5
-);
-
-osc.start();
-
-osc.stop(audioCtx.currentTime + .5);
-
-}catch(e){}
+    for(let i=0;i<30;i++){
+        particles.push(new Particle(x,y,color));
+    }
 
 }
 
 function fail(){
 
-shake = 22;
+    shake = 20;
 
-burst(w/2,h/2,"#ff3355");
+    burst(width/2,height/2,"#ff3355");
 
-loseLife();
+    loseLife();
 
-createLevel();
+    createLevel();
 
 }
 
 function loseLife(){
 
-lives--;
+    lives--;
 
-if(lives <= 0){
-
-gameOver();
-
-}
+    if(lives <= 0){
+        gameOver();
+    }
 
 }
 
 function gameOver(){
 
-paused = true;
+    paused = true;
 
-document
-.getElementById("gameOver")
-.classList.remove("hidden");
+    document.getElementById("gameOver")
+    .classList.remove("hidden");
 
-document
-.getElementById("finalLevel")
-.innerHTML =
-"HIGHEST LEVEL : " + level;
+    document.getElementById("finalLevel")
+    .innerHTML = "HIGHEST LEVEL : " + level;
+
+}
+
+function showLevelUp(){
+
+    const popup =
+    document.getElementById("levelPopup");
+
+    popup.classList.remove("hidden");
+
+    burst(width/2,height/2,"#00e5ff");
+
+    setTimeout(()=>{
+        popup.classList.add("hidden");
+    },1500);
 
 }
 
 function drawGrid(){
 
-ctx.strokeStyle =
-"rgba(255,255,255,.05)";
+    ctx.strokeStyle = "rgba(255,255,255,.05)";
 
-for(let x=0;x<w;x+=40){
+    for(let x=0;x<width;x+=40){
 
-ctx.beginPath();
+        ctx.beginPath();
+        ctx.moveTo(x,0);
+        ctx.lineTo(x,height);
+        ctx.stroke();
 
-ctx.moveTo(x,0);
+    }
 
-ctx.lineTo(x,h);
+    for(let y=0;y<height;y+=40){
 
-ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0,y);
+        ctx.lineTo(width,y);
+        ctx.stroke();
 
-}
-
-for(let y=0;y<h;y+=40){
-
-ctx.beginPath();
-
-ctx.moveTo(0,y);
-
-ctx.lineTo(w,y);
-
-ctx.stroke();
-
-}
+    }
 
 }
 
 function gameLoop(){
 
-requestAnimationFrame(gameLoop);
+    requestAnimationFrame(gameLoop);
 
-if(!gameStarted || paused) return;
+    if(!gameStarted || paused) return;
 
-ctx.clearRect(0,0,w,h);
+    ctx.clearRect(0,0,width,height);
 
-if(transitionAlpha > 0){
+    shake *= 0.85;
 
-ctx.fillStyle =
-`rgba(0,0,0,${transitionAlpha})`;
+    ctx.save();
 
-ctx.fillRect(0,0,w,h);
+    ctx.translate(
+        (Math.random()-0.5)*shake,
+        (Math.random()-0.5)*shake
+    );
 
-transitionAlpha -= .02;
+    drawGrid();
 
-}
+    for(let obstacle of obstacles){
+        obstacle.draw();
+    }
 
-shake *= .82;
+    for(let powerup of powerups){
+        powerup.draw();
+    }
 
-ctx.save();
+    for(let arrow of arrows){
+        arrow.update();
+        arrow.draw();
+    }
 
-ctx.translate(
-(Math.random()-.5)*shake,
-(Math.random()-.5)*shake
-);
+    for(let particle of particles){
+        particle.update();
+        particle.draw();
+    }
 
-drawGrid();
+    particles = particles.filter(
+        p=>p.life > 0
+    );
 
-for(let o of obstacles){
-o.draw();
-}
+    ctx.restore();
 
-for(let p of powerups){
-p.draw();
-}
+    arrows = arrows.filter(a=>!a.done);
 
-for(let a of arrows){
+    if(arrows.length===0){
 
-a.update();
+        level++;
 
-a.draw();
+        localStorage.bestArrowLevel =
+        Math.max(
+            level,
+            Number(localStorage.bestArrowLevel || 1)
+        );
 
-}
+        showLevelUp();
 
-for(let p of particles){
+        setTimeout(()=>{
+            createLevel();
+        },700);
 
-p.update();
+    }
 
-p.draw();
+    timer -= 0.016;
 
-}
+    if(timer <= 0){
 
-particles =
-particles.filter(p=>p.life>0);
+        loseLife();
 
-ctx.restore();
+        createLevel();
 
-arrows =
-arrows.filter(a=>!a.done);
+    }
 
-if(arrows.length===0){
-
-level++;
-
-localStorage.bestArrowLevel =
-Math.max(
-level,
-localStorage.bestArrowLevel || 1
-);
-
-showLevelUp();
-
-setTimeout(()=>{
-createLevel();
-},700);
-
-}
-
-timer -= .016;
-
-if(timer <= 0){
-
-loseLife();
-
-createLevel();
-
-}
-
-updateUI();
+    updateUI();
 
 }
 
 canvas.addEventListener("click",e=>{
 
-if(!gameStarted) return;
+    if(!gameStarted) return;
 
-const rect =
-canvas.getBoundingClientRect();
+    const rect =
+    canvas.getBoundingClientRect();
 
-const mx =
-e.clientX - rect.left;
+    const mouseX =
+    e.clientX - rect.left;
 
-const my =
-e.clientY - rect.top;
+    const mouseY =
+    e.clientY - rect.top;
 
-for(let p of powerups){
+    for(let powerup of powerups){
 
-if(
-Math.hypot(mx-p.x,my-p.y)
-< 40
-){
-p.collect();
-return;
-}
+        const d = Math.hypot(
+            mouseX - powerup.x,
+            mouseY - powerup.y
+        );
 
-}
+        if(d < 40){
+            powerup.collect();
+            return;
+        }
 
-for(let a of arrows){
+    }
 
-if(!a.moving){
+    for(let arrow of arrows){
 
-if(
-Math.hypot(mx-a.x,my-a.y)
-< a.size
-){
+        if(!arrow.moving){
 
-a.moving = true;
+            const d = Math.hypot(
+                mouseX - arrow.x,
+                mouseY - arrow.y
+            );
 
-shake = 4;
+            if(d < arrow.size){
 
-burst(a.x,a.y,a.color);
+                arrow.moving = true;
 
-break;
+                shake = 5;
 
-}
+                burst(
+                    arrow.x,
+                    arrow.y,
+                    arrow.color
+                );
 
-}
+                break;
 
-}
+            }
+
+        }
+
+    }
 
 });
 
-document
-.getElementById("startBtn")
+document.getElementById("startBtn")
 .onclick = ()=>{
 
-document
-.getElementById("home")
-.classList.add("hidden");
+    document.getElementById("home")
+    .classList.add("hidden");
 
-gameStarted = true;
+    gameStarted = true;
 
-createLevel();
+    createLevel();
 
 };
 
-document
-.getElementById("pauseBtn")
+document.getElementById("pauseBtn")
 .onclick = ()=>{
 
-if(pauseUsed) return;
+    if(pauseUsed) return;
 
-pauseUsed = true;
+    pauseUsed = true;
 
-paused = true;
+    paused = true;
 
-document
-.getElementById("pauseBtn")
-.classList.add("used");
+    document.getElementById("pauseBtn")
+    .classList.add("used");
 
-document
-.getElementById("pauseMenu")
-.classList.remove("hidden");
+    document.getElementById("pauseMenu")
+    .classList.remove("hidden");
 
 };
 
-document
-.getElementById("resumeBtn")
+document.getElementById("resumeBtn")
 .onclick = ()=>{
 
-paused = false;
+    paused = false;
 
-document
-.getElementById("pauseMenu")
-.classList.add("hidden");
+    document.getElementById("pauseMenu")
+    .classList.add("hidden");
 
 };
 
-function rand(min,max){
-return Math.random()*(max-min)+min;
+function random(min,max){
+    return Math.random()*(max-min)+min;
 }
 
 gameLoop();
