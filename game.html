@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>GO ON ARROW</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background: #0a0a0a;
+            color: #00ffff;
+            font-family: 'Press Start 2P', system-ui;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            touch-action: none;
+        }
+        
+        #container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            border: 4px solid #00ffff;
+            box-shadow: 0 0 40px #00ffff;
+            overflow: hidden;
+        }
+        
+        canvas {
+            display: block;
+            background: #111111;
+        }
+        
+        #ui {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none;
+            z-index: 10;
+            font-size: 14px;
+            text-shadow: 0 0 10px #00ffff;
+        }
+        
+        .neon-text {
+            text-shadow: 
+                0 0 5px #fff,
+                0 0 10px #fff,
+                0 0 20px #00ffff,
+                0 0 40px #00ffff;
+        }
+        
+        button {
+            background: transparent;
+            color: #00ffff;
+            border: 3px solid #00ffff;
+            padding: 8px 16px;
+            font-family: 'Press Start 2P', system-ui;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 0 15px #00ffff;
+            pointer-events: all;
+        }
+        
+        button:hover {
+            background: #00ffff;
+            color: #0a0a0a;
+        }
+        
+        #pause-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="canvas" width="800" height="600"></canvas>
+        
+        <!-- UI Overlay -->
+        <div id="ui">
+            <div>LEVEL <span id="level-display">1</span></div>
+            <div class="lives" id="lives-display">❤️❤️❤️❤️❤️</div>
+            <div>TIME <span id="time-display">90</span></div>
+        </div>
+        
+        <button id="pause-btn" onclick="pauseGame()">PAUSE</button>
+
+        <!-- Home Screen -->
+        <div id="home-screen">
+            <h1 class="neon-text" style="color:#ff00ff; font-size:52px;">GO ON</h1>
+            <h1 class="neon-text" style="color:#00ffff; margin-top:-25px; font-size:52px;">ARROW</h1>
+            <button onclick="startGame()" style="font-size:24px; padding:22px 60px; margin-top:20px;">START GAME</button>
+        </div>
+        
+        <!-- Game Over Screen -->
+        <div id="game-over-screen" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(10,10,20,0.95); flex-direction:column; justify-content:center; align-items:center; z-index:100;">
+            <h1 style="color:#ff0066; font-size:48px;">GAME OVER</h1>
+            <p id="final-level" style="margin:15px 0 40px 0; font-size:20px; color:#ff88aa;">YOU REACHED LEVEL 1</p>
+            <button onclick="restartGame()" style="font-size:20px; padding:18px 50px;">PLAY AGAIN</button>
+        </div>
+        
+        <!-- Pause Overlay -->
+        <div id="pause-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(10,10,30,0.92); justify-content:center; align-items:center; flex-direction:column; z-index:200;">
+            <h2 style="color:#ffff00; font-size:36px;">PAUSED</h2>
+            <p style="font-size:14px; margin:25px 0; color:#aaffff;">One pause per session</p>
+            <button onclick="resumeGame()" style="font-size:18px;">RESUME</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameState = 'home';
+        let currentLevel = 1;
+        let lives = 5;
+        let timeLeft = 90;
+        let timerInterval = null;
+        let hasUsedPause = false;
+        
+        let arrows = [];
+        let obstacles = [];
+        let powerUps = [];
+        let launchedArrows = [];
+        let particles = [];
+        let shake = 0;
+        let shakeDecay = 0.88;
+        let themeColor = '#00ffff';
+        let themeIndex = 0;
+        
+        let camera = { scale: 1, offsetX: 0, offsetY: 0 };
+        let lastTouchDistance = 0;
+        let zoomVelocity = 0; // For smoother pinch zoom
+        
+        const themes = ['#00ffff', '#ff00ff', '#00ff88', '#ffaa00', '#cc00ff'];
+        
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        class Arrow {
+            constructor(x, y, angle) {
+                this.x = x; this.y = y; this.angle = angle;
+                this.launched = false;
+                this.speed = 5.2;
+                this.trail = [];
+                this.size = 22 + Math.random() * 9;
+            }
+        }
+        
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x; this.y = y;
+                this.vx = (Math.random() - 0.5) * 14;
+                this.vy = (Math.random() - 0.5) * 14 - 1.5;
+                this.life = 48;
+                this.maxLife = 48;
+                this.color = color;
+                this.size = Math.random() * 7 + 4;
+                this.gravity = 0.22;
+                this.friction = 0.978;
+            }
+            update() {
+                this.vx *= this.friction;
+                this.vy *= this.friction;
+                this.vy += this.gravity;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.life--;
+                this.size *= 0.97;
+            }
+        }
+        
+        class PowerUp {
+            constructor(x, y, type) {
+                this.x = x;
+                this.y = y;
+                this.type = type;
+                this.pulse = 0;
+                this.radius = 18;
+            }
+        }
+        
+        function playSound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            const filter = audioCtx.createBiquadFilter();
+            
+            switch(type) {
+                case 'launch':
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(880 + Math.random()*280, audioCtx.currentTime);
+                    gain.gain.value = 0.3;
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.18);
+                    break;
+                case 'collision':
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(140, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.65);
+                    gain.gain.value = 0.75;
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.7);
+                    break;
+                case 'levelup':
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(620, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(1350, audioCtx.currentTime + 0.9);
+                    gain.gain.value = 0.45;
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.2);
+                    break;
+                case 'powerup':
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(920, audioCtx.currentTime);
+                    gain.gain.value = 0.5;
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.45);
+                    break;
+            }
+            osc.connect(filter).connect(gain).connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 1.3);
+        }
+        
+        function createExplosion(x, y, intensity = 1) {
+            for (let i = 0; i < 38 * intensity; i++) {
+                particles.push(new Particle(x, y, themeColor));
+            }
+            for (let i = 0; i < 22 * intensity; i++) {
+                particles.push(new Particle(x, y, '#ff3388'));
+            }
+        }
+        
+        function createLevelUpEffect() {
+            for (let i = 0; i < 95; i++) {
+                const p = new Particle(400, 300, '#ffff44');
+                p.vx *= 0.5; p.vy *= 0.5; p.life = 65;
+                particles.push(p);
+            }
+            playSound('levelup');
+        }
+        
+        function generateLevel(level) {
+            arrows = [];
+            obstacles = [];
+            powerUps = [];
+            launchedArrows = [];
+            
+            const numArrows = Math.min(5 + Math.floor(level / 2), 12);
+            const numObstacles = level < 11 ? 3 : level < 21 ? 5 : 7;
+            const numPowerUps = level > 8 ? 2 : level > 4 ? 1 : 0;
+            
+            for (let i = 0; i < numArrows; i++) {
+                let x = 130 + Math.random() * 540;
+                let y = 110 + Math.random() * 380;
+                const angle = [0, 90, 180, 270][Math.floor(Math.random()*4)];
+                const arrow = new Arrow(x, y, angle);
+                arrow.speed = 5.1 + (level > 20 ? 2.4 : level > 10 ? 1.3 : 0);
+                arrows.push(arrow);
+            }
+            
+            for (let i = 0; i < numObstacles; i++) {
+                obstacles.push({
+                    x: 150 + Math.random() * 500,
+                    y: 130 + Math.random() * 340,
+                    w: 52 + Math.random() * 88,
+                    h: 44 + Math.random() * 68
+                });
+            }
+            
+            for (let i = 0; i < numPowerUps; i++) {
+                powerUps.push(new PowerUp(
+                    160 + Math.random() * 480,
+                    140 + Math.random() * 320,
+                    Math.random() > 0.6 ? 'life' : Math.random() > 0.5 ? 'slow' : 'time'
+                ));
+            }
+            
+            themeIndex = Math.floor((level - 1) / 10) % themes.length;
+            themeColor = themes[themeIndex];
+        }
+        
+        function drawBackground() {
+            ctx.fillStyle = '#0a0a12';
+            ctx.fillRect(0, 0, 800, 600);
+            
+            ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+            const offset = (Date.now() / 70) % 40;
+            for (let x = offset - 40; x < 840; x += 40) {
+                ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,600); ctx.stroke();
+            }
+            for (let y = offset - 40; y < 640; y += 40) {
+                ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(800,y); ctx.stroke();
+            }
+        }
+        
+        function drawArrow(arrow) {
+            ctx.save();
+            ctx.translate(arrow.x, arrow.y);
+            ctx.rotate(arrow.angle * Math.PI / 180);
+            
+            if (arrow.launched && arrow.trail.length > 2) {
+                ctx.globalAlpha = 0.7;
+                ctx.strokeStyle = themeColor;
+                ctx.lineWidth = 13;
+                ctx.shadowBlur = 32;
+                ctx.shadowColor = themeColor;
+                ctx.beginPath();
+                for (let i = 0; i < arrow.trail.length; i++) {
+                    const p = arrow.trail[i];
+                    i === 0 ? ctx.moveTo(p.x - arrow.x, p.y - arrow.y) : ctx.lineTo(p.x - arrow.x, p.y - arrow.y);
+                }
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                ctx.shadowBlur = 0;
+            }
+            
+            ctx.shadowBlur = 38;
+            ctx.shadowColor = '#ffffff';
+            ctx.fillStyle = '#ffffff';
+            ctx.strokeStyle = themeColor;
+            ctx.lineWidth = 5;
+            
+            const s = arrow.size;
+            ctx.beginPath();
+            ctx.moveTo(-s*0.9, 0);
+            ctx.lineTo(s*0.85, 0);
+            ctx.stroke();
+            
+            ctx.shadowBlur = 24;
+            ctx.shadowColor = themeColor;
+            ctx.beginPath();
+            ctx.moveTo(s*0.85, 0);
+            ctx.lineTo(s*0.35, -s*0.65);
+            ctx.lineTo(s*0.35, s*0.65);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.shadowBlur = 0;
+            ctx.restore();
+        }
+        
+        function drawPowerUps() {
+            for (let pu of powerUps) {
+                pu.pulse = (pu.pulse + 0.12) % (Math.PI * 2);
+                const r = pu.radius + Math.sin(pu.pulse) * 4;
+                
+                ctx.shadowBlur = 25;
+                ctx.shadowColor = pu.type === 'life' ? '#00ff88' : pu.type === 'slow' ? '#ffaa00' : '#44ffff';
+                
+                ctx.fillStyle = pu.type === 'life' ? '#00ff88' : pu.type === 'slow' ? '#ffaa00' : '#44ffff';
+                ctx.beginPath();
+                ctx.arc(pu.x, pu.y, r, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 18px Press Start 2P';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(pu.type === 'life' ? '♥' : pu.type === 'slow' ? '⏳' : '+', pu.x, pu.y);
+                
+                ctx.shadowBlur = 0;
+            }
+        }
+        
+        function drawObstacles() {
+            ctx.shadowBlur = 18;
+            ctx.shadowColor = '#ff2266';
+            for (let obs of obstacles) {
+                ctx.fillStyle = '#220011';
+                ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+                ctx.strokeStyle = '#ff6699';
+                ctx.lineWidth = 5;
+                ctx.strokeRect(obs.x + 8, obs.y + 8, obs.w - 16, obs.h - 16);
+            }
+            ctx.shadowBlur = 0;
+        }
+        
+        function drawParticles() {
+            for (let p of particles) {
+                ctx.globalAlpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x - p.size/2, p.y - p.size/2, p.size, p.size);
+            }
+            ctx.globalAlpha = 1;
+        }
+        
+        function update() {
+            if (gameState !== 'playing') return;
+            
+            // Particles
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if (particles[i].life <= 0) particles.splice(i, 1);
+            }
+            
+            // Shake
+            if (shake > 0.4) shake *= shakeDecay;
+            else shake = 0;
+            
+            // Power-ups
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const pu = powerUps[i];
+                for (let arrow of arrows) {
+                    if (!arrow.launched) continue;
+                    const dx = arrow.x - pu.x;
+                    const dy = arrow.y - pu.y;
+                    if (dx*dx + dy*dy < 900) {
+                        activatePowerUp(pu);
+                        powerUps.splice(i, 1);
+                        break;
+                    }
+                }
+            }
+            
+            let allDone = true;
+            
+            for (let i = arrows.length - 1; i >= 0; i--) {
+                const a = arrows[i];
+                if (a.launched) {
+                    const rad = a.angle * Math.PI / 180;
+                    a.x += Math.cos(rad) * a.speed;
+                    a.y += Math.sin(rad) * a.speed;
+                    
+                    a.trail.push({x: a.x, y: a.y});
+                    if (a.trail.length > 19) a.trail.shift();
+                    
+                    for (let obs of obstacles) {
+                        if (a.x > obs.x - 24 && a.x < obs.x + obs.w + 24 &&
+                            a.y > obs.y - 24 && a.y < obs.y + obs.h + 24) {
+                            createExplosion(a.x, a.y, 1.5);
+                            playSound('collision');
+                            shake = 20;
+                            handleCollision();
+                            return;
+                        }
+                    }
+                    
+                    if (a.x < -100 || a.x > 900 || a.y < -100 || a.y > 700) {
+                        arrows.splice(i, 1);
+                    } else allDone = false;
+                } else allDone = false;
+            }
+            
+            for (let i = 0; i < arrows.length; i++) {
+                for (let j = i+1; j < arrows.length; j++) {
+                    const a1 = arrows[i], a2 = arrows[j];
+                    if (a1.launched && a2.launched) {
+                        const dx = a1.x - a2.x;
+                        const dy = a1.y - a2.y;
+                        if (dx*dx + dy*dy < 1700) {
+                            createExplosion((a1.x+a2.x)/2, (a1.y+a2.y)/2, 1.7);
+                            playSound('collision');
+                            shake = 24;
+                            handleCollision();
+                            return;
+                        }
+                    }
+                }
+            }
+            
+            if (arrows.length === 0 && launchedArrows.length > 0) levelComplete();
+        }
+        
+        function activatePowerUp(pu) {
+            playSound('powerup');
+            createExplosion(pu.x, pu.y, 0.8);
+            
+            if (pu.type === 'time') timeLeft += 25;
+            else if (pu.type === 'life' && lives < 5) lives++;
+            else if (pu.type === 'slow') arrows.forEach(a => { if (a.launched) a.speed *= 0.6; });
+            
+            updateUI();
+        }
+        
+        function handleCollision() {
+            lives--;
+            updateUI();
+            if (lives <= 0) gameOver();
+            else generateLevel(currentLevel);
+        }
+        
+        function levelComplete() {
+            currentLevel++;
+            createLevelUpEffect();
+            timeLeft = Math.max(48, 106 - Math.floor(currentLevel * 1.6));
+            generateLevel(currentLevel);
+            updateUI();
+            shake = 9;
+        }
+        
+        function draw() {
+            ctx.save();
+            const sx = (Math.random() - 0.5) * shake;
+            const sy = (Math.random() - 0.5) * shake;
+            ctx.translate(sx + camera.offsetX, sy + camera.offsetY);
+            ctx.scale(camera.scale, camera.scale);
+            
+            drawBackground();
+            drawObstacles();
+            arrows.forEach(drawArrow);
+            drawPowerUps();
+            drawParticles();
+            
+            ctx.restore();
+        }
+        
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function updateUI() {
+            document.getElementById('level-display').textContent = currentLevel;
+            let hearts = '';
+            for (let i = 0; i < 5; i++) hearts += (i < lives ? '❤️' : '♡');
+            document.getElementById('lives-display').innerHTML = hearts;
+            document.getElementById('time-display').textContent = Math.ceil(timeLeft);
+        }
+        
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (gameState === 'playing') {
+                    timeLeft--;
+                    document.getElementById('time-display').textContent = Math.ceil(timeLeft);
+                    if (timeLeft <= 0) handleCollision();
+                }
+            }, 1000);
+        }
+        
+        function getCanvasPos(clientX, clientY) {
+            const rect = canvas.getBoundingClientRect();
+            let x = (clientX - rect.left - camera.offsetX) / camera.scale;
+            let y = (clientY - rect.top - camera.offsetY) / camera.scale;
+            return {x, y};
+        }
+        
+        function canvasClick(e) {
+            if (gameState !== 'playing') return;
+            const pos = getCanvasPos(e.clientX, e.clientY);
+            
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const pu = powerUps[i];
+                const dx = pos.x - pu.x;
+                const dy = pos.y - pu.y;
+                if (dx*dx + dy*dy < 800) {
+                    activatePowerUp(pu);
+                    powerUps.splice(i, 1);
+                    return;
+                }
+            }
+            
+            for (let arrow of arrows) {
+                if (arrow.launched) continue;
+                const dx = arrow.x - pos.x;
+                const dy = arrow.y - pos.y;
+                if (Math.hypot(dx, dy) < 58) {
+                    arrow.launched = true;
+                    launchedArrows.push(arrow);
+                    playSound('launch');
+                    shake = 4;
+                    break;
+                }
+            }
+        }
+        
+        function handlePinch(e) {
+            if (e.touches.length !== 2) return;
+            
+            const dx = e.touches[0].clientX - e.touches[1].clientX;
+            const dy = e.touches[0].clientY - e.touches[1].clientY;
+            const currentDist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (lastTouchDistance > 10) {
+                const delta = currentDist - lastTouchDistance;
+                // Refined sensitivity: smoother and less aggressive
+                zoomVelocity = delta * 0.0028;
+                camera.scale = Math.max(0.75, Math.min(1.65, camera.scale + zoomVelocity));
+            }
+            
+            lastTouchDistance = currentDist;
+        }
+        
+        function startGame() {
+            initAudio();
+            document.getElementById('home-screen').style.display = 'none';
+            gameState = 'playing';
+            currentLevel = 1;
+            lives = 5;
+            hasUsedPause = false;
+            timeLeft = 90;
+            camera.scale = 1;
+            camera.offsetX = 0;
+            camera.offsetY = 0;
+            shake = 0;
+            generateLevel(1);
+            updateUI();
+            startTimer();
+        }
+        
+        function pauseGame() {
+            if (gameState !== 'playing' || hasUsedPause) return;
+            hasUsedPause = true;
+            gameState = 'paused';
+            clearInterval(timerInterval);
+            document.getElementById('pause-overlay').style.display = 'flex';
+        }
+        
+        function resumeGame() {
+            gameState = 'playing';
+            document.getElementById('pause-overlay').style.display = 'none';
+            startTimer();
+        }
+        
+        function gameOver() {
+            gameState = 'gameover';
+            clearInterval(timerInterval);
+            document.getElementById('final-level').textContent = `YOU REACHED LEVEL ${currentLevel}`;
+            document.getElementById('game-over-screen').style.display = 'flex';
+        }
+        
+        function restartGame() {
+            document.getElementById('game-over-screen').style.display = 'none';
+            document.getElementById('home-screen').style.display = 'flex';
+        }
+        
+        window.onload = () => {
+            canvas.addEventListener('click', canvasClick);
+            
+            // Touch handlers
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    const touch = e.touches[0];
+                    canvasClick({clientX: touch.clientX, clientY: touch.clientY});
+                } else if (e.touches.length === 2) {
+                    lastTouchDistance = 0;
+                    handlePinch(e);
+                }
+            });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) handlePinch(e);
+            });
+            
+            canvas.addEventListener('touchend', () => {
+                lastTouchDistance = 0;
+                zoomVelocity = 0;
+            });
+            
+            // Mouse wheel zoom (refined)
+            canvas.addEventListener('wheel', (e) => {
+                if (gameState !== 'playing') return;
+                const delta = e.deltaY * -0.0011;
+                camera.scale = Math.max(0.75, Math.min(1.65, camera.scale + delta));
+            });
+            
+            gameLoop();
+        };
+    </script>
+</body>
+</html>
